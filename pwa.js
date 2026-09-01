@@ -13,7 +13,7 @@
   }
 
   addTag("link", { rel: "manifest", href: "manifest.webmanifest" });
-  addTag("meta", { name: "theme-color", content: "#F2F4FA" });
+  addTag("meta", { name: "theme-color", content: "#F3F4F3" });
   addTag("link", { rel: "apple-touch-icon", href: "icons/apple-touch-icon.png" });
   addTag("meta", { name: "mobile-web-app-capable", content: "yes" });
   addTag("meta", { name: "apple-mobile-web-app-capable", content: "yes" });
@@ -31,7 +31,7 @@
     }
     #pwaUpdate {
       position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%);
-      background: var(--brand-teal, #2B59D9); color: var(--accent-on, #fff);
+      background: var(--brand-teal, #27823B); color: var(--accent-on, #fff);
       font: 600 13px/1 system-ui, sans-serif;
       padding: 10px 16px; border: 0; border-radius: 999px; z-index: 9999;
       cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.35);

@@ -31,9 +31,9 @@ branch `main`, root folder). Intended audience: Team 4 members only.
   it, so the static data is the effective source. Own team row highlighted
   (`tr.own-team`). Cell classes: `st-rank`, `st-team`, `st-pts` (+ positional CSS
   fallbacks).
-- **Theme**: royal blue. Light bg `#F2F4FA`, dark bg `#0D1322`, brand `#2B59D9`
-  (dark: `#6C93F5`). CSS variable NAMES were kept from the main app (`--brand-teal`,
-  `--teal-ink`, …) so shared code keeps working — only the VALUES are blue now.
+- **Theme**: light green + light grey. Light bg `#F3F4F3`, dark bg `#121412`, brand
+  `#27823B` (dark: `#7BC98A`). CSS variable NAMES were kept from the main app
+  (`--brand-teal`, `--teal-ink`, …) so shared code keeps working — only the VALUES changed.
   Meta theme-color values are set in BOTH app.js (`applyTheme`) and pwa.js — keep in sync.
 - **Icons**: `icons/` — blue gradient, white shuttlecock + big "4"
   (192, 512, 512-maskable, 180 apple-touch). `showNotif` references

@@ -159,7 +159,7 @@ function applyTheme(t) {
   document.documentElement.dataset.theme = t;
   localStorage.setItem(THEME_KEY, t);
   const tc = document.querySelector('meta[name="theme-color"]');
-  if (tc) tc.content = t === "dark" ? "#0D1322" : "#F2F4FA";
+  if (tc) tc.content = t === "dark" ? "#121412" : "#F3F4F3";
 }
 document.getElementById("themeBtn").addEventListener("click", () => {
   applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");

@@ -6,44 +6,44 @@
     --font-body: "Barlow", system-ui, -apple-system, sans-serif;
     --font-disp: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   }
-  /* colour tokens: names stay (--brand-teal, --teal-ink ...), values are royal blue. */
+  /* colour tokens: names stay (--brand-teal, --teal-ink ...), values are green/grey. */
   :root, [data-theme="dark"] {
     color-scheme: dark;
-    --surface-0: #0D1322;
-    --surface-1: #131B30;
-    --surface-2: #1C2540;
-    --text-strong: #E6EAF5;
-    --text: #B4BEDA;
-    --text-muted: #808CAE;
+    --surface-0: #121412;
+    --surface-1: #1A1D1A;
+    --surface-2: #242824;
+    --text-strong: #E9EDE9;
+    --text: #B8C1B8;
+    --text-muted: #849084;
     --border: rgba(255,255,255,0.12);
-    --brand-teal: #6C93F5;
-    --brand-teal-press: #567FE6;
-    --accent-on: #0A1430;
+    --brand-teal: #7BC98A;
+    --brand-teal-press: #63B674;
+    --accent-on: #0C2312;
     --court-green: #3FB950;
     --warn: #E3B341;
     --danger: #F85149;
     --row-hover: rgba(255,255,255,0.06);
     --teal-ink: var(--brand-teal);
-    --team-band: rgba(108,147,245,0.12);
+    --team-band: rgba(123,201,138,0.14);
   }
   [data-theme="light"] {
     color-scheme: light;
-    --surface-0: #F2F4FA;
+    --surface-0: #F3F4F3;
     --surface-1: #FFFFFF;
-    --surface-2: #E7EBF6;
-    --text-strong: #131A2B;
-    --text: #3A4358;
-    --text-muted: #6B7590;
-    --border: rgba(24,35,66,0.14);
-    --brand-teal: #2B59D9;
-    --brand-teal-press: #244CC0;
+    --surface-2: #E9EBE8;
+    --text-strong: #161B16;
+    --text: #3C443C;
+    --text-muted: #6E786E;
+    --border: rgba(28,40,28,0.14);
+    --brand-teal: #27823B;
+    --brand-teal-press: #1F6C30;
     --accent-on: #FFFFFF;
     --court-green: #1F8A46;
     --warn: #A96E08;
     --danger: #C6362F;
-    --row-hover: rgba(24,35,66,0.05);
-    --teal-ink: #1E3FA8;
-    --team-band: rgba(43,89,217,0.09);
+    --row-hover: rgba(28,40,28,0.05);
+    --teal-ink: #1D6B2E;
+    --team-band: rgba(39,130,59,0.10);
   }
 
   * { box-sizing: border-box; }
@@ -410,13 +410,14 @@
   .me-btn.n.on { background: color-mix(in srgb, var(--danger) 20%, var(--surface-1)); border-color: var(--danger); color: var(--danger); }
   .av-names { margin-top: 10px; font-size: 0.88em; }
   .av-names summary { cursor: pointer; color: var(--text-muted); user-select: none; }
-  .av-view { display: none; }
+  /* must out-rank .seg-tabs { display: flex } below — hence the double class */
+  .seg-tabs.av-view { display: none; }
   @media (max-width: 880px) {
     .avail-scroll { display: none; }
     #availCards { display: grid; gap: 12px; }
     .who-row { flex-wrap: wrap; }
     .who-row select { flex: 1 1 100%; }
-    .av-view { display: flex; }
+    .seg-tabs.av-view { display: flex; }
     /* compact full table as an alternative to the cards */
     .av-table-mode .avail-scroll { display: block; }
     .av-table-mode #availCards { display: none; }

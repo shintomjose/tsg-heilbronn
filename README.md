@@ -35,7 +35,7 @@ The source (nuLiga) is linked in the header of `standings.js`. On load the app t
 fetch the table live; when that fails (CORS usually blocks it) the values from
 `standings.js` are shown — which is why manual upkeep matters.
 
-Our own team is highlighted in the table: its row gets the `own-team` class and a blue tint.
+Our own team is highlighted in the table: its row gets the `own-team` class and a green tint.
 
 ## Running locally
 
@@ -66,7 +66,7 @@ Every push to `main` goes live directly.
 index.html            App shell and markup of the two tabs
 app.js                Logic: match dates, availability, lineup, Firebase sync
 standings.js          League standings (maintained by hand)
-style.css             Design (royal blue, light/dark mode)
+style.css             Design (green/grey, light/dark mode)
 pwa.js                Manifest/meta injection, service worker registration, update prompt
 sw.js                 Service worker (precache, offline fallback)
 manifest.webmanifest  PWA manifest
