@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>4. Mannschaft — SG Heilbronn/Leingarten</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232B59D9'/%3E%3Ctext x='50' y='53' text-anchor='middle' dominant-baseline='central' font-family='Barlow, Arial, sans-serif' font-size='70' font-weight='700' fill='%23FFFFFF'%3E4%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="app-header">
+  <div class="brand">
+    <span class="brand-mark">🏸</span>
+    <div class="brand-text">
+      <span class="brand-eyebrow">SG Heilbronn/Leingarten · Saison 2026/27</span>
+      <h1>4. Mannschaft</h1>
+    </div>
+  </div>
+  <button id="themeBtn" aria-label="Theme wechseln">☀/☾</button>
+  <button id="langBtn" aria-label="Sprache / Language">EN</button>
+  <button id="notifBtn" aria-label="Benachrichtigungen" hidden>🔔</button>
+  <nav class="tabs" role="tablist" aria-label="Bereiche">
+    <button role="tab" id="tabbtn-termine" aria-selected="true" aria-controls="tab-termine"><span class="tno">01</span><span class="tlabel">Termine</span></button>
+    <button role="tab" id="tabbtn-lineup" aria-selected="false" aria-controls="tab-lineup"><span class="tno">02</span><span class="tlabel">Aufstellung</span></button>
+  </nav>
+</header>
+
+<main>
+  <!-- ============ TAB 1: Termine (matches) ============ -->
+  <section class="tab-panel" id="tab-termine" role="tabpanel" aria-labelledby="tabbtn-termine">
+    <p class="tab-sub">Spieltermine SG Heilbronn/Leingarten IV — Bezirksliga „Neckar-Odenwald" 2026/27 · alle Spiele samstags</p>
+    <div class="rounds">
+      <section class="panel">
+        <h2>Vorrunde <span class="hint">— Okt–Nov 2026</span></h2>
+        <table class="match-table" id="mtVor"></table>
+      </section>
+      <section class="panel">
+        <h2>Rückrunde <span class="hint">— Jan–Mär 2027</span></h2>
+        <table class="match-table" id="mtRueck"></table>
+      </section>
+    </div>
+    <section class="panel">
+      <h2>Tabelle <span class="hint">— Bezirksliga „Neckar-Odenwald" (3-4)</span> <span id="stTabStatus" class="av-status"></span></h2>
+      <div class="standings-scroll">
+        <table class="standings-table" id="standingsTable"></table>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Verfügbarkeit <span class="hint">— Klick auf Zelle: — → ✓ → ✗ · live geteilt mit dem Team</span> <span id="avStatus" class="av-status">verbinde…</span></h2>
+      <div class="who-row">
+        <label for="avWho">Ich bin:</label>
+        <select id="avWho"><option value="">— Name wählen —</option></select>
+      </div>
+      <div class="seg-tabs" role="tablist" aria-label="Runde">
+        <button id="avTabVor" role="tab" aria-selected="true">Vorrunde</button>
+        <button id="avTabRueck" role="tab" aria-selected="false">Rückrunde</button>
+      </div>
+      <div class="seg-tabs av-view" role="tablist" aria-label="Ansicht">
+        <button id="avViewCards" role="tab" aria-selected="true">Karten</button>
+        <button id="avViewTable" role="tab" aria-selected="false">Tabelle</button>
+      </div>
+      <div id="availCards"></div>
+      <div class="avail-scroll">
+        <table class="avail-table" id="availTable"></table>
+      </div>
+    </section>
+    <section class="panel" data-pin-protect>
+      <div class="pin-gate">
+        <div class="pin-box">
+          <h2>🔒 Verlauf geschützt</h2>
+          <p>PIN eingeben, um den Verlauf zu sehen.</p>
+          <form class="pin-gate-form">
+            <input type="password" inputmode="numeric" maxlength="12" placeholder="PIN" aria-label="PIN">          </form>
+        </div>
+      </div>
+      <h2>Verlauf <span class="hint">— wer hat was geändert</span>
+        <button type="button" id="avLogClear" class="btn small log-clear">Alle löschen</button></h2>
+      <ul class="av-log" id="avLog"><li class="av-log-empty">Noch keine Änderungen</li></ul>
+    </section>
+  </section>
+
+  <!-- ============ TAB 2: Aufstellung (lineup) ============ -->
+  <section class="tab-panel" id="tab-lineup" role="tabpanel" aria-labelledby="tabbtn-lineup" hidden>
+    <p class="tab-sub">8 Spiele: 2 HD · 1 DD · 3 HE · 1 DE · 1 GD — max. 2 Disziplinen pro Spieler (Mixed zählt als Disziplin)</p>
+    <div class="tab-toolbar">
+      <button id="luClearBtn" class="btn">Auswahl leeren</button>
+      <button id="luResetBtn" class="btn">Kader zurücksetzen</button>
+    </div>
+    <div class="layout">
+      <div class="col-left">
+        <section class="panel">
+          <h2>Kader <span class="hint">— Haken = am Spieltag verfügbar</span></h2>
+          <div class="seg-tabs" role="tablist" aria-label="Kader">
+            <button id="luTabM" role="tab" aria-selected="true" aria-controls="luPaneM">Herren <span class="seg-count" id="luCountM"></span></button>
+            <button id="luTabF" role="tab" aria-selected="false" aria-controls="luPaneF">Damen <span class="seg-count" id="luCountF"></span></button>
+          </div>
+          <div class="squad-scroll" id="luPaneM" role="tabpanel"></div>
+          <div class="squad-scroll" id="luPaneF" role="tabpanel" hidden></div>
+          <form id="luAddForm" class="add-form">
+            <input id="luAddName" type="text" placeholder="Name" required autocomplete="off">
+            <select id="luAddGender" aria-label="Geschlecht">
+              <option value="m">Herr</option>
+              <option value="f">Dame</option>
+            </select>
+            <button type="submit" class="btn primary">+</button>
+          </form>
+        </section>
+      </div>
+      <div class="col-right" id="luRight">
+        <section class="panel">
+          <h2>Einzel <span class="hint">— wer spielt, wählt der Kapitän · Reihenfolge fest nach Rangliste</span></h2>
+          <div id="luSinglesOut"></div>
+        </section>
+        <section class="panel">
+          <h2>Herrendoppel <span class="hint">— Option wählen · HD1 = kleinere Rangsumme · ⭐ = Chemie</span></h2>
+          <div id="luHdOut"></div>
+        </section>
+        <section class="panel">
+          <h2>Damendoppel <span class="hint">— Paar wählen</span></h2>
+          <div id="luDdOut"></div>
+        </section>
+        <section class="panel">
+          <h2>Mixed <span class="hint">— nur Spieler mit freier Disziplin wählbar</span></h2>
+          <div id="luGdOut"></div>
+        </section>
+        <section class="panel">
+          <h2>Aufstellung</h2>
+          <div id="luSheetOut"></div>
+          <div style="margin-top:10px">
+            <button id="luCopyBtn" class="btn primary">Aufstellung kopieren</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="standings.js"></script>
+<script src="app.js"></script>
+<script src="pwa.js" defer></script>
+</body>
+</html>

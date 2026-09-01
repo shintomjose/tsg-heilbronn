@@ -1,0 +1,17 @@
+{
+  "name": "Team 4 — SG Heilbronn/Leingarten",
+  "short_name": "Team 4",
+  "description": "Termine, Verfügbarkeit, Tabelle und Aufstellung der 4. Mannschaft",
+  "lang": "de",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F2F4FA",
+  "theme_color": "#F2F4FA",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
