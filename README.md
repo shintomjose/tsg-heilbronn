@@ -7,7 +7,7 @@ No build step — plain HTML/CSS/JS, runs directly in the browser and works offl
 
 | Tab | Content |
 | --- | --- |
-| **01 Termine** | Match days (first/second half of the season), availability matrix (card view on phones), staffing progress, change log, and the current league standings. |
+| **01 Termine** | Match days (first/second half of the season), availability matrix (card view on phones), staffing progress, and the current league standings. |
 | **02 Aufstellung** | Squad, available players, doubles/singles suggestions with chemistry rating, and the finished lineup sheet. |
 
 ## Data
@@ -15,8 +15,8 @@ No build step — plain HTML/CSS/JS, runs directly in the browser and works offl
 The app uses **the same Firebase Realtime Database as the main "Badminton Tools" app**.
 Availability marks, the change log and the team assignment are shared: a change here is
 immediately visible in the main app — and vice versa. There is no separate copy of the data.
-Players are added to the availability list in the main app only; this app intentionally has
-no add-player form.
+Availability changes made here are still written to the shared change log, but the log UI
+(Verlauf) only exists in the main app.
 
 The league standings are deliberately **not** in the database — they are maintained
 statically in `standings.js`.

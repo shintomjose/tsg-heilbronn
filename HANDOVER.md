@@ -18,8 +18,10 @@ branch `main`, root folder). Intended audience: Team 4 members only.
   cart and lightbox from the main app are fully removed.
 - **Termine tab**: match tables (Vorrunde/Rückrunde for SG Heilbronn/Leingarten IV,
   Bezirksliga "Neckar-Odenwald" 2026/27), NEW standings panel ("Tabelle"), availability
-  (cards + table view), PIN-protected change log (same PIN hash as main app),
-  in-app notifications bell.
+  (cards + table view), in-app notifications bell. NO change-log (Verlauf) UI and NO PIN
+  code in this app — both removed on the owner's request; the Verlauf lives in the main
+  app only. Changes made here are still written to `avail/log` so the main app's Verlauf
+  and this app's notifications keep working.
 - **Aufstellung tab**: full club roster (59 men / 26 women), Team 4 hard-pinned
   (`TEAM_NO = 4` in app.js) — team pills removed; selection auto-follows the shared
   team assignment from the cloud.
@@ -38,10 +40,12 @@ branch `main`, root folder). Intended audience: Team 4 members only.
   `icons/icon-192.png` — keep that filename.
 - **Branding**: DE "4. Mannschaft" / EN "Team 4"; `<title>` switches accordingly;
   manifest name "Team 4 — SG Heilbronn/Leingarten", short_name "Team 4".
-- **Removed on purpose (this session)**: the "Spieler hinzufügen" form in the
-  Verfügbarkeit panel (form, datalist, JS handlers, CSS, EN strings). Players are
-  added in the main app only; the shared DB makes them appear here automatically.
-  The change-log still renders/notifies "added to the list" entries made elsewhere.
+- **Removed on purpose**: the "Spieler hinzufügen" form in the Verfügbarkeit panel
+  (later also removed from badminton-tools — it exists in NEITHER app now; the player
+  list is edited via the Firebase console if ever needed), the whole Verlauf panel,
+  and all PIN-gate code (no PIN anywhere in this app). Related note: in
+  badminton-tools the PIN protection is currently disabled via a `PIN_DISABLED = true`
+  flag in its app.js (flip to false to re-enable).
 
 ## Data sharing with the main app (requirement: two-way sync)
 
@@ -51,7 +55,7 @@ Same `FB_CONFIG` (project badminton-tools-c6b27, europe-west1 RTDB). Paths:
 | --- | --- | --- |
 | `avail/players` | read | list of names in the availability matrix (add/remove only in main app) |
 | `avail/marks/{matchId}/{nameKey}` | read/write | own marks only (honesty principle via "Ich bin" select) |
-| `avail/log` | read/write | change log, push entries; delete via PIN-unlocked UI |
+| `avail/log` | write + read (no UI) | entries pushed on every change; the read listener only feeds notifications — the Verlauf UI is main-app-only |
 | `teams` | READ-ONLY | team assignment; cached to localStorage `bwbv-ranking-v5`, then `luRefreshTeamSelection()`. This app must NEVER write/seed `teams` (the main app has a seed-on-empty branch; this one deliberately does not). |
 
 localStorage: UI prefs are `t4-`-prefixed (`t4-theme`, `t4-tab`, `t4-termine-round`,
@@ -59,7 +63,7 @@ localStorage: UI prefs are `t4-`-prefixed (`t4-theme`, `t4-tab`, `t4-termine-rou
 Data keys are intentionally SHARED with the main app: `bwbv-ranking-v5` (teams cache),
 `nuliga-lineup-v4` (lineup state; `load()` forces team back to 4 and discards picks if
 the sibling app stored a different team), `termine-whoami`, `termine-notify`,
-`termine-notify-last`, `pin-unlock-v1`, `bwbv-lang`.
+`termine-notify-last`, `bwbv-lang`.
 
 ## Conventions / gotchas
 

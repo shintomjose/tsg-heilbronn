@@ -225,28 +225,6 @@
     * { transition: none !important; }
   }
 
-  [data-pin-protect] .pin-gate { display: none; }
-  [data-pin-protect].pin-locked > :not(.pin-gate) { display: none !important; }
-  [data-pin-protect].pin-locked .pin-gate { display: flex; justify-content: center; padding: 36px 12px; }
-  .pin-box {
-    text-align: center;
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 26px 30px;
-    max-width: 340px;
-  }
-  .pin-box p { color: var(--text-muted); margin: 8px 0 0; font-size: 0.9em; }
-  .pin-box form { display: flex; gap: 8px; margin-top: 14px; justify-content: center; }
-  .pin-box input {
-    font: inherit; text-align: center; letter-spacing: 0.3em;
-    width: 7em; min-width: 0;
-    background: var(--surface-2); color: var(--text-strong);
-    border: 1px solid var(--border); border-radius: var(--radius-sm);
-    padding: 8px; min-height: 44px;
-  }
-  .pin-box input:focus-visible { outline: none; box-shadow: var(--ring); }
-
   .toast {
     position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
     background: var(--surface-2); color: var(--text-strong);
@@ -365,46 +343,12 @@
     max-width: 100%;
   }
   .who-row select:focus-visible { outline: none; box-shadow: var(--ring); }
-  .av-log { list-style: none; margin: 0; padding: 0; font-size: 0.88em; }
-  .av-log li.log-day { padding: 8px 2px 10px; border-bottom: 1px solid var(--border); }
-  .av-log li.log-day:last-child { border-bottom: 0; }
-  .log-date {
-    font-family: var(--font-disp);
-    font-size: 0.95em; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--text-strong);
-    margin-bottom: 4px;
-  }
+  /* .log-row/.log-mark are reused by the availability cards' names list */
   .log-row { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; flex-wrap: wrap; }
   .log-mark { font-weight: 700; width: 1.2em; text-align: center; flex: none; }
   .log-row.y .log-mark { color: var(--court-green); }
   .log-row.n .log-mark { color: var(--danger); }
-  .log-entry { margin-right: 14px; }
-  .log-entry strong { color: var(--text-strong); font-weight: 600; }
-  .log-entry em {
-    font-style: normal;
-    color: var(--text-muted); font-size: 0.85em;
-    margin-left: 4px;
-  }
-  .log-time { color: var(--teal-ink); font-size: 0.85em; font-weight: 600; }
   .th-time { color: var(--teal-ink); font-weight: 700; }
-  .av-log-empty { color: var(--text-muted); font-style: italic; }
-  .log-clear {
-    float: right;
-    font-family: var(--font-body); text-transform: none; letter-spacing: 0;
-    color: var(--danger);
-  }
-  .log-clear:hover, .log-clear.armed { background: color-mix(in srgb, var(--danger) 15%, transparent); }
-  .log-del {
-    font: inherit; margin-left: auto; flex: none;
-    background: transparent;
-    border: 1px solid var(--border); border-radius: 6px;
-    color: var(--danger); font-weight: 700;
-    padding: 0 8px; font-size: 0.8em; line-height: 1.6;
-    cursor: pointer;
-  }
-  .log-del:hover, .log-del.armed { background: color-mix(in srgb, var(--danger) 15%, transparent); }
-  .log-del.armed { white-space: nowrap; }
 
   /* squad-filling progress */
   .avail-table tr.av-prog td { font-weight: 700; font-variant-numeric: tabular-nums; }

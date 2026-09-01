@@ -12,13 +12,6 @@ const EN = {
   "Damen": "Women",
   "Heim": "Home",
   "Auswärts": "Away",
-  "Eintrag löschen": "Delete entry",
-  "Sicher?": "Sure?",
-  "Wirklich ALLE löschen?": "Really delete ALL?",
-  "Eintrag gelöscht": "Entry deleted",
-  "Verlauf komplett gelöscht": "History cleared",
-  "Löschen fehlgeschlagen": "Delete failed",
-  "Noch keine Änderungen": "No changes yet",
   "Keine Verbindung zur Datenbank": "No database connection",
   "Bitte zuerst oben deinen Namen wählen": "Please pick your name above first",
   "Du kannst nur deine eigene Verfügbarkeit ändern": "You can only change your own availability",
@@ -27,7 +20,6 @@ const EN = {
   "○ offline — keine Verbindung": "○ offline — no connection",
   "○ Zugriff verweigert — DB-Regeln prüfen": "○ access denied — check DB rules",
   "Verbinde mit Datenbank…": "Connecting to database…",
-  "zur Liste hinzugefügt": "added to the list",
   "— Name wählen —": "— pick your name —",
   "✓ Dabei": "✓ I'm in",
   "✗ Keine Zeit": "✗ Can't play",
@@ -60,8 +52,6 @@ const EN = {
   "Kader zurückgesetzt (Chemie-Sterne bleiben)": "Squad reset (chemistry stars kept)",
   "HD1": "MD1", "HD2": "MD2", "DD": "WD", "HE1": "MS1", "HE2": "MS2", "HE3": "MS3", "DE": "WS", "GD": "XD",
   "Sa": "Sat",
-  "Falscher PIN": "Wrong PIN",
-  "Entsperrt": "Unlocked",
   "🔔 an": "🔔 on",
   "🔔 aus": "🔔 off",
   "Benachrichtigungen aus": "Notifications off",
@@ -102,8 +92,6 @@ const STATIC_EN = [
   ["#avTabRueck", "Second half"],
   ["label[for=avWho]", "I am:"],
   ["#avWho option", "— pick your name —"],
-  ["#avLogClear", "Delete all"],
-  [".av-log-empty", "No changes yet"],
   ["#avStatus", "connecting…"],
   ["#tab-lineup .tab-sub", "8 matches: 2 MD · 1 WD · 3 MS · 1 WS · 1 XD — max. 2 events per player (mixed counts as an event)"],
   ["#luClearBtn", "Clear selection"],
@@ -139,17 +127,7 @@ function applyStaticEn() {
     const el = document.querySelector(sel);
     if (el) el.setAttribute(attr, val);
   });
-  document.querySelectorAll(".pin-box").forEach(box => {
-    const h = box.querySelector("h2"), p = box.querySelector("p");
-    if (h && h.textContent.includes("Verlauf")) { h.textContent = "🔒 History locked"; if (p) p.textContent = "Enter PIN to view the history."; }
-    else if (h) { h.textContent = "🔒 Protected area"; if (p) p.textContent = "Enter PIN to continue."; }
-  });
   /* headings with dynamic child elements: replace only the text parts */
-  const verlaufH2 = document.querySelector("#tab-termine [data-pin-protect] > h2");
-  if (verlaufH2 && verlaufH2.querySelector(".hint")) {
-    verlaufH2.childNodes[0].textContent = "History ";
-    verlaufH2.querySelector(".hint").textContent = "— who changed what";
-  }
   const stStatus = document.getElementById("stTabStatus");
   const stH2 = stStatus && stStatus.closest("h2");
   if (stH2 && stH2.querySelector(".hint")) {
@@ -225,18 +203,6 @@ function toast(msg, undo) {
   toastTimer = setTimeout(() => el.classList.remove("show"), undo ? 6000 : 2200);
 }
 
-/* ---- PIN protection for the history ---- */
-const PIN_HASH = "67be10d98e9ab6d770578f47763baa3bec8e6b3ce68f323cafe00a65ffa43f0d";
-const PIN_KEY = "pin-unlock-v1";
-async function sha256Hex(s) {
-  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
-}
-function pinUnlocked() { return localStorage.getItem(PIN_KEY) === PIN_HASH; }
-function applyPinLocks() {
-  document.querySelectorAll("[data-pin-protect]").forEach(el =>
-    el.classList.toggle("pin-locked", !pinUnlocked()));
-}
 /* ---- Firebase: shared app initialisation + anonymous sign-in ----
    Config is harmless in public — access is governed by the DB rules. */
 const FB_CONFIG = {
@@ -254,33 +220,6 @@ window.fbReady = new Promise(resolve => {
   firebase.auth().onAuthStateChanged(u => { if (u) resolve(firebase.database()); });
   firebase.auth().signInAnonymously().catch(() => resolve(null));
 });
-
-/* the PIN checks itself as soon as 4 characters are entered */
-document.addEventListener("input", e => {
-  const inp = e.target.closest("form.pin-gate-form input");
-  if (!inp || inp.value.trim().length < 4) return;
-  if (inp.form.requestSubmit) inp.form.requestSubmit();
-  else inp.form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-});
-
-document.addEventListener("submit", async e => {
-  const form = e.target.closest("form.pin-gate-form");
-  if (!form) return;
-  e.preventDefault();
-  const inp = form.querySelector("input");
-  let h = "";
-  try { h = await sha256Hex(inp.value.trim()); } catch {}
-  if (h === PIN_HASH) {
-    localStorage.setItem(PIN_KEY, h);
-    applyPinLocks();
-    toast(t("Entsperrt"));
-  } else {
-    inp.value = "";
-    toast(t("Falscher PIN"));
-    inp.focus();
-  }
-});
-applyPinLocks();
 
 /* ================= TAB 1: Termine (match dates of the active IV) ================= */
 (function () {
@@ -461,52 +400,6 @@ document.getElementById("avWho").addEventListener("change", e => {
 
 function avLogWrite(entry) {
   avDb.ref("avail/log").push({ t: firebase.database.ServerValue.TIMESTAMP, ...entry }).catch(() => {});
-}
-
-function renderLog(items) {
-  const el = document.getElementById("avLog");
-  document.getElementById("avLogClear").hidden = !items.length;
-  if (!items.length) {
-    el.innerHTML = `<li class="av-log-empty">${t("Noch keine Änderungen")}</li>`;
-    return;
-  }
-  const fmtT = ts => ts
-    ? new Date(ts).toLocaleString(DATE_LOCALE, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
-    : "";
-
-  /* full history: every click stays visible, grouped by match day, newest first */
-  const adds = items.filter(it => it.action === "add");
-  const changes = items.filter(it => !it.action && it.day && it.player);
-
-  const parts = [];
-  const dates = [];
-  DAYS.forEach(d => { if (!dates.some(x => x.date === d.date)) dates.push({ date: d.date, day: d.day, matches: DAYS.filter(m => m.date === d.date) }); });
-  dates.forEach(dt => {
-    const list = changes.filter(it => dt.matches.some(m => m.key === it.day));
-    if (!list.length) return;
-    const multi = dt.matches.length > 1;
-    parts.push(`<li class="log-day">
-      <div class="log-date">${t(dt.day)} ${dt.date}</div>
-      ${list.map(it => {
-        const m = dt.matches.find(x => x.key === it.day);
-        const cls = it.to === "y" ? " y" : it.to === "n" ? " n" : "";
-        return `<div class="log-row${cls}"><span class="log-mark">${avSym(it.to)}</span>
-          <span class="log-entry"><strong>${esc(it.player)}</strong>${multi && m ? ` <span class="log-time">${m.time}</span>` : ""}
-          ${avSym(it.from)} → ${avSym(it.to)}
-          <em>(${esc(it.by || "?")}, ${fmtT(it.t)})</em></span>
-          <button type="button" class="log-del" data-logdel="${esc(it._k)}" aria-label="${t("Eintrag löschen")}">×</button></div>`;
-      }).join("")}
-    </li>`);
-  });
-  adds.forEach(it => {
-    parts.push(`<li class="log-day">
-      <div class="log-row"><span class="log-mark">+</span>
-        <span class="log-entry"><strong>${esc(it.player)}</strong> ${t("zur Liste hinzugefügt")}
-        <em>(${esc(it.by || "?")}, ${fmtT(it.t)})</em></span>
-        <button type="button" class="log-del" data-logdel="${esc(it._k)}" aria-label="${t("Eintrag löschen")}">×</button></div>
-    </li>`);
-  });
-  el.innerHTML = parts.length ? parts.join("") : `<li class="av-log-empty">${t("Noch keine Änderungen")}</li>`;
 }
 
 let avRound = localStorage.getItem("t4-termine-round") === "rueck" ? "rueck" : "vor";
@@ -728,44 +621,6 @@ function notifyNewEntries(items) {
   if (fresh.length > 3) showNotif(tt("… und {0} weitere Änderungen", fresh.length - 3));
 }
 
-/* delete with two-click confirmation: the first click arms, the second runs it */
-function armThenRun(btn, label, fn) {
-  const disarm = () => {
-    delete btn.dataset.armed;
-    clearTimeout(btn._armT);
-    btn.textContent = btn.dataset.orig || btn.textContent;
-    btn.classList.remove("armed");
-  };
-  if (btn.dataset.armed) {
-    disarm();
-    fn();
-    return;
-  }
-  btn.dataset.armed = "1";
-  btn.dataset.orig = btn.textContent;
-  btn.textContent = label;
-  btn.classList.add("armed");
-  btn._armT = setTimeout(disarm, 4000);
-}
-
-document.getElementById("avLog").addEventListener("click", e => {
-  const b = e.target.closest("button[data-logdel]");
-  if (!b) return;
-  if (!avDb) { toast(t("Keine Verbindung zur Datenbank")); return; }
-  armThenRun(b, t("Sicher?"), () =>
-    avDb.ref("avail/log/" + b.dataset.logdel).remove()
-      .then(() => toast(t("Eintrag gelöscht")))
-      .catch(() => toast(t("Löschen fehlgeschlagen"))));
-});
-
-document.getElementById("avLogClear").addEventListener("click", e => {
-  if (!avDb) { toast(t("Keine Verbindung zur Datenbank")); return; }
-  armThenRun(e.currentTarget, t("Wirklich ALLE löschen?"), () =>
-    avDb.ref("avail/log").remove()
-      .then(() => toast(t("Verlauf komplett gelöscht")))
-      .catch(() => toast(t("Löschen fehlgeschlagen"))));
-});
-
 /* ---- Firebase connection ---- */
 (async function initAvailSync() {
   const db = window.fbReady ? await window.fbReady : null;
@@ -801,6 +656,8 @@ document.getElementById("avLogClear").addEventListener("click", e => {
     });
   })();
 
+  /* the log itself has no UI here (history lives in the main app) —
+     the listener only feeds the notifications */
   let logTries = 0;
   (function attachLog() {
     avDb.ref("avail/log").limitToLast(200).on("value", snap => {
@@ -808,7 +665,6 @@ document.getElementById("avLogClear").addEventListener("click", e => {
       const items = [];
       snap.forEach(ch => { items.push({ _k: ch.key, ...ch.val() }); });
       items.reverse();
-      renderLog(items);
       notifyNewEntries(items);
     }, err => {
       console.error("[avail/log] listener cancelled:", err);
