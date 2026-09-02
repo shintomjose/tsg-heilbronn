@@ -332,6 +332,20 @@
   .standings-table tbody tr.own-team td.st-team { color: var(--teal-ink); font-weight: 700; }
   .standings-table tbody tr.own-team td:first-child { box-shadow: inset 3px 0 0 0 var(--brand-teal); }
   .standings-updated { color: var(--text-muted); font-size: 0.8em; margin: 10px 2px 0; }
+  /* heading becomes a flex row so the refresh link can sit at the right edge */
+  #stPanel h2 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .st-refresh {
+    margin-left: auto;
+    font-family: var(--font-body);
+    font-size: 0.72em; font-weight: 600;
+    text-transform: none; letter-spacing: 0;
+    color: var(--teal-ink); text-decoration: none;
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 4px 12px;
+    white-space: nowrap;
+  }
+  .st-refresh:hover { background: var(--row-hover); color: var(--teal-ink); }
+  .st-refresh:focus-visible { outline: none; box-shadow: var(--ring); }
 
   #tab-termine .avail-scroll { overflow-x: auto; }
   .avail-table { border-collapse: collapse; width: 100%; }

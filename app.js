@@ -100,6 +100,7 @@ const STATIC_EN = [
   ["#luResetBtn", "Reset squad"],
   ["#luAddGender option[value=m]", "Male"],
   ["#luAddGender option[value=f]", "Female"],
+  ["#stRefresh", "Update ↗"],
 ];
 const STATIC_EN_HTML = [
   /* anchored on the panel ids, so reordering the Termine tab cannot break them */
@@ -114,6 +115,7 @@ const STATIC_EN_HTML = [
 ];
 const STATIC_EN_ATTR = [
   ["#luAddName", "placeholder", "Name"],
+  ["#stRefresh", "title", "Opens GitHub Actions — start “Run workflow” there (fetches the table from nuLiga)"],
 ];
 function applyStaticEn() {
   if (LANG !== "en") return;
