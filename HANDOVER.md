@@ -35,7 +35,7 @@ branch `main`, root folder). Intended audience: Team 4 members only.
   `#27823B` (dark: `#7BC98A`). CSS variable NAMES were kept from the main app
   (`--brand-teal`, `--teal-ink`, …) so shared code keeps working — only the VALUES changed.
   Meta theme-color values are set in BOTH app.js (`applyTheme`) and pwa.js — keep in sync.
-- **Icons**: `icons/` — blue gradient, white shuttlecock + big "4"
+- **Icons**: `icons/` — green gradient, white shuttlecock + big "4"
   (192, 512, 512-maskable, 180 apple-touch). `showNotif` references
   `icons/icon-192.png` — keep that filename.
 - **Branding**: DE "4. Mannschaft" / EN "Team 4"; `<title>` switches accordingly;
