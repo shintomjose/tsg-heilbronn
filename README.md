@@ -3,6 +3,18 @@
 Progressive Web App for the 4th team: match dates, availability, league standings and lineup.
 No build step — plain HTML/CSS/JS, runs directly in the browser and works offline (service worker).
 
+## App links
+
+| App | URL | Notes |
+| --- | --- | --- |
+| **Team 4 app** (this repo) | https://tsg-badminton-our-team.web.app | Share this with the team — installs as the "Team 4" PWA. |
+| Team 4 app (mirror) | https://shintomjose.github.io/tsg-heilbronn/ | GitHub Pages, same deploys. |
+| Badminton Tools (main app, repo `badminton-tools`) | https://tsg-badminton-fansite.web.app | Full app incl. rankings, shop, and the private match tracker. |
+| Badminton Tools (mirror) | https://shintomjose.github.io/badminton-tools/ | GitHub Pages. |
+
+Both apps share the same Firebase Realtime Database — availability and team
+data sync between them in both directions.
+
 ## The two tabs
 
 | Tab | Content |
