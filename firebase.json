@@ -1,0 +1,20 @@
+{
+  "hosting": {
+    "target": "team4",
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "**/.*",
+      "**/.*/**",
+      "**/*.md",
+      "start-local.cmd"
+    ],
+    "headers": [
+      {
+        "source": "sw.js",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      }
+    ]
+  }
+}
