@@ -9,7 +9,10 @@
       "**/.*/**",
       "**/*.md",
       "start-local.cmd",
-      "scripts/**"
+      "scripts/**",
+      "**/badminton-tools-c6b27-*.json",
+      "**/*service-account*.json",
+      "**/*serviceAccount*.json"
     ],
     "headers": [
       {

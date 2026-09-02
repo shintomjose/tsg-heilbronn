@@ -1,2 +1,5 @@
 .idea/
 .firebase/
+badminton-tools-c6b27-*.json
+*service-account*.json
+*serviceAccount*.json
