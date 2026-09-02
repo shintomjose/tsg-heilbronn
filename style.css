@@ -298,7 +298,8 @@
      overflow-x — shrinks sideways to avoid it, squeezing the table to roughly
      two thirds of the panel and wrapping the headers. flow-root keeps the float
      inside the heading where it belongs. */
-  #stPanel > h2 { display: flow-root; }
+  /* #avStatus floats the same way in the availability heading — same containment. */
+  #stPanel > h2, #avPanel > h2 { display: flow-root; }
   .standings-scroll { overflow-x: auto; }
   .standings-table { border-collapse: collapse; width: 100%; }
   .standings-table th, .standings-table td {
