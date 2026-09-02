@@ -293,6 +293,12 @@
   .badge-ha.a { background: var(--surface-2); color: var(--text-muted); border: 1px solid var(--border); }
 
   /* ---- standings (league table) ---- */
+  /* #stTabStatus is float:right inside the h2. Without this the float escapes the
+     heading, and .standings-scroll — a block formatting context, because of
+     overflow-x — shrinks sideways to avoid it, squeezing the table to roughly
+     two thirds of the panel and wrapping the headers. flow-root keeps the float
+     inside the heading where it belongs. */
+  #stPanel > h2 { display: flow-root; }
   .standings-scroll { overflow-x: auto; }
   .standings-table { border-collapse: collapse; width: 100%; }
   .standings-table th, .standings-table td {
