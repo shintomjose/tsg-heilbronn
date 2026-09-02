@@ -43,8 +43,11 @@ The source (nuLiga) is linked in the header of `standings.js`. On load the app a
 to fetch the table live; when that fails (CORS usually blocks it) the values from
 `standings.js` are shown — which is why the upkeep matters.
 
-Note: the Firebase Hosting mirror (tsg-badminton-our-team.web.app) is NOT updated by the
-Action — run `firebase deploy --only hosting:team4` to refresh it.
+The Firebase Hosting mirror (tsg-badminton-our-team.web.app) is deployed automatically:
+on every push to `main` (`deploy-hosting.yml`) and after each standings auto-commit
+(deploy step inside `update-standings.yml`). Both need the repo secret
+`FIREBASE_SERVICE_ACCOUNT_BADMINTON_TOOLS_C6B27` — create it once with
+`firebase init hosting:github`. Manual fallback: `firebase deploy --only hosting:team4`.
 
 Our own team is highlighted in the table: its row gets the `own-team` class and a green tint.
 

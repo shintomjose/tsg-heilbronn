@@ -1,0 +1,28 @@
+# Deploy to the Firebase Hosting mirror (tsg-badminton-our-team.web.app)
+# on every push to main, keeping it in sync with GitHub Pages.
+#
+# NOTE: commits pushed by the update-standings workflow do NOT trigger this
+# (GitHub suppresses workflow runs for pushes made with the default
+# GITHUB_TOKEN) — that workflow therefore runs the same deploy step itself.
+#
+# Requires the FIREBASE_SERVICE_ACCOUNT_BADMINTON_TOOLS_C6B27 repo secret;
+# create it once with: firebase init hosting:github
+name: Deploy Firebase Hosting
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_BADMINTON_TOOLS_C6B27 }}
+          projectId: badminton-tools-c6b27
+          target: team4
+          channelId: live

@@ -27,9 +27,11 @@ jobs:
         run: node scripts/update-standings.mjs
 
       - name: Commit and push if changed
+        id: commit
         run: |
           if git diff --quiet standings.js; then
             echo "standings unchanged — nothing to commit"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           git config user.name "standings-bot"
@@ -37,3 +39,16 @@ jobs:
           git add standings.js
           git commit -m "chore(standings): update from nuLiga"
           git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # a push made with GITHUB_TOKEN does not trigger the deploy-hosting
+      # workflow, so the Firebase mirror is deployed from here as well
+      - name: Deploy Firebase Hosting mirror
+        if: steps.commit.outputs.changed == 'true'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_BADMINTON_TOOLS_C6B27 }}
+          projectId: badminton-tools-c6b27
+          target: team4
+          channelId: live
