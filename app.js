@@ -90,6 +90,8 @@ const STATIC_EN = [
   ["#avViewTable", "Table"],
   ["#avTabVor", "First half"],
   ["#avTabRueck", "Second half"],
+  ["#rdTabVor", "First half"],
+  ["#rdTabRueck", "Second half"],
   ["label[for=avWho]", "I am:"],
   ["#avWho option", "— pick your name —"],
   ["#avStatus", "connecting…"],
@@ -100,8 +102,9 @@ const STATIC_EN = [
   ["#luAddGender option[value=f]", "Female"],
 ];
 const STATIC_EN_HTML = [
-  ["#tab-termine .rounds .panel:nth-child(1) h2", "First half <span class=\"hint\">— Oct–Nov 2026</span>"],
-  ["#tab-termine .rounds .panel:nth-child(2) h2", "Second half <span class=\"hint\">— Jan–Mar 2027</span>"],
+  /* anchored on the panel ids, so reordering the Termine tab cannot break them */
+  ["#rdPaneVor h2", "First half <span class=\"hint\">— Oct–Nov 2026</span>"],
+  ["#rdPaneRueck h2", "Second half <span class=\"hint\">— Jan–Mar 2027</span>"],
   ["#tab-lineup .col-left h2", "Squad <span class=\"hint\">— check = available on match day</span>"],
   ["#tab-lineup .col-right .panel:nth-child(1) h2", "Singles <span class=\"hint\">— captain picks who plays · order fixed by ranking</span>"],
   ["#tab-lineup .col-right .panel:nth-child(2) h2", "Men's doubles <span class=\"hint\">— pick an option · MD1 = lower rank sum · ⭐ = chemistry</span>"],
@@ -260,6 +263,24 @@ function renderMatches(tableId, round) {
 renderMatches("mtVor", "vor");
 renderMatches("mtRueck", "rueck");
 
+/* mobile: show one round at a time (visibility only — both panels stay in the
+   DOM and are shown side by side on desktop, where the switcher is hidden) */
+const ROUNDS_TAB_KEY = "t4-rounds-tab";
+let roundsTab = localStorage.getItem(ROUNDS_TAB_KEY) === "rueck" ? "rueck" : "vor";
+function applyRoundsTab() {
+  document.getElementById("rdTabVor").setAttribute("aria-selected", String(roundsTab === "vor"));
+  document.getElementById("rdTabRueck").setAttribute("aria-selected", String(roundsTab === "rueck"));
+  document.getElementById("tab-termine").classList.toggle("rounds-rueck", roundsTab === "rueck");
+}
+for (const [id, round] of [["rdTabVor", "vor"], ["rdTabRueck", "rueck"]]) {
+  document.getElementById(id).addEventListener("click", () => {
+    roundsTab = round;
+    localStorage.setItem(ROUNDS_TAB_KEY, round);
+    applyRoundsTab();
+  });
+}
+applyRoundsTab();
+
 /* ---- league standings: static data from standings.js, live fetch as a bonus ---- */
 const OWN_TEAM = "Heilbronn/Leingarten IV";
 const ST_URL = "https://bwbv-badminton.liga.nu/cgi-bin/WebObjects/nuLigaBADDE.woa/wa/groupPage?championship=NB+26%2F27&group=40186";
@@ -274,7 +295,7 @@ function renderStandings(rows, live) {
     const own = String(r.team).includes(OWN_TEAM);
     return `<tr${own ? ' class="own-team"' : ""}>
       <td class="st-rank">${esc(r.rang)}</td>
-      <td class="st-team">${esc(r.team)}</td>
+      <td class="st-team" title="${esc(r.team)}"><span class="st-team-n">${esc(r.team)}</span></td>
       <td>${esc(r.beg)}</td><td>${esc(r.s)}</td><td>${esc(r.u)}</td><td>${esc(r.n)}</td>
       <td class="st-pts">${esc(r.punkte)}</td><td>${esc(r.spiele)}</td><td>${esc(r.saetze)}</td>
     </tr>`;

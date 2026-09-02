@@ -247,6 +247,29 @@
   #tab-termine .rounds { display: grid; grid-template-columns: 1fr; gap: 18px; align-items: start; }
   @media (min-width: 980px) { #tab-termine .rounds { grid-template-columns: 1fr 1fr; } }
   #tab-termine .rounds .panel { overflow-x: auto; }
+  /* must out-rank .seg-tabs { display: flex } further down — hence the double class.
+     Desktop keeps both round panels visible, so the switcher stays hidden there. */
+  .seg-tabs.rounds-tabs { display: none; }
+
+  /* ---- phone layout: standings first, one round at a time ---- */
+  @media (max-width: 720px) {
+    /* pure-CSS reordering: the DOM order stays desktop-first */
+    #tab-termine { display: flex; flex-direction: column; }
+    #tab-termine .tab-sub   { order: 1; }
+    #tab-termine #stPanel   { order: 2; }
+    #tab-termine .rounds-tabs { order: 3; }
+    #tab-termine .rounds    { order: 4; }
+    #tab-termine #avPanel   { order: 5; }
+    /* full-width two-button switcher, one button per half of the row */
+    .seg-tabs.rounds-tabs { display: flex; }
+    .seg-tabs.rounds-tabs button {
+      flex: 1 1 50%; min-width: 0;
+      padding-left: 6px; padding-right: 6px;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    #tab-termine:not(.rounds-rueck) #rdPaneRueck { display: none; }
+    #tab-termine.rounds-rueck #rdPaneVor { display: none; }
+  }
   .match-table { border-collapse: collapse; width: 100%; }
   .match-table th, .match-table td {
     padding: 9px 10px; border-bottom: 1px solid var(--border);
@@ -292,6 +315,13 @@
   .standings-table th.st-rank, .standings-table td.st-rank { text-align: right; width: 3.2em; color: var(--text-muted); }
   .standings-table th.st-team, .standings-table td.st-team { text-align: left; }
   .standings-table td.st-team { color: var(--text-strong); font-weight: 500; }
+  /* team is the only flexible column. A block wrapper with max-width caps the
+     column's intrinsic width, so the name truncates instead of widening the
+     table (the td carries the full name in its title attribute). */
+  .standings-table td.st-team .st-team-n {
+    display: block;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
   .standings-table th.st-num, .standings-table td.st-num { text-align: center; }
   .standings-table td.st-pts { font-weight: 700; color: var(--text-strong); }
   .standings-table tbody tr:nth-child(even) { background: var(--row-hover); }
@@ -435,7 +465,22 @@
   @media (max-width: 480px) {
     .match-table th, .match-table td { padding: 6px 4px; font-size: 0.8em; }
     .match-table td.mdate { white-space: normal; }
-    .standings-table th, .standings-table td { padding: 6px 6px; font-size: 0.8em; }
+    /* ---- standings on a phone: fit all 9 columns instead of scrolling ---- */
+    /* use the panel padding as extra table width */
+    .standings-scroll { margin: 0 -8px; }
+    .standings-table th, .standings-table td { padding: 5px 3px; font-size: 0.74em; }
+    /* headings stay on one line — nowrap is inherited from the base rule, but
+       it is repeated here so a future font-size tweak cannot undo it */
+    .standings-table th { font-size: 0.68em; letter-spacing: 0.02em; white-space: nowrap; }
+    /* the fixed 3.2em rank column wastes space at this width */
+    .standings-table th:first-child, .standings-table td:first-child,
+    .standings-table th.st-pos, .standings-table td.st-pos,
+    .standings-table th.st-rank, .standings-table td.st-rank { width: auto; }
+    /* leftover width after the eight nowrap number columns (~272px incl. page
+       and panel padding); clamped so it stays readable on any phone */
+    .standings-table td.st-team .st-team-n {
+      max-width: max(70px, min(160px, calc(100vw - 272px)));
+    }
     .badge-ha { font-size: 0.68em; padding: 1px 6px; }
     .panel { padding: 12px; }
     .tab-toolbar { gap: 8px; }
