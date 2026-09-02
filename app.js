@@ -48,6 +48,12 @@ const EN = {
   "Keine freien Paare mehr — mehr Herren anhaken.": "No pairs left without a repeated player — check more men.",
   "Alle {0} anzeigen": "Show all {0}",
   "— schon 2 Disziplinen: {0}": "— already 2 events: {0}",
+  "{0} hinzufügen": "Add {0}",
+  /* wording matches the sibling app so the shared UI reads identically */
+  "„{0}“ neu anlegen": "Add “{0}” as new",
+  "Keine Spieler ausgewählt": "No players selected",
+  "Keine Spielerinnen ausgewählt": "No players selected",
+  "Kein Treffer": "No match",
   "Aufstellung": "Lineup",
   "Aufstellung kopiert": "Lineup copied",
   "Auswahl geleert": "Selection cleared",
@@ -100,8 +106,6 @@ const STATIC_EN = [
   ["#tab-lineup .tab-sub", "8 matches: 2 MD · 1 WD · 3 MS · 1 WS · 1 XD — max. 2 events per player (mixed counts as an event)"],
   ["#luClearBtn", "Clear selection"],
   ["#luResetBtn", "Reset squad"],
-  ["#luAddGender option[value=m]", "Male"],
-  ["#luAddGender option[value=f]", "Female"],
   ["#stRefresh", "Update ↗"],
 ];
 const STATIC_EN_HTML = [
@@ -116,7 +120,12 @@ const STATIC_EN_HTML = [
   ["#tab-lineup .col-right .panel:nth-child(5) h2", "Lineup"],
 ];
 const STATIC_EN_ATTR = [
-  ["#luAddName", "placeholder", "Name"],
+  ["#luAddToggleM", "title", "Add player"],
+  ["#luAddToggleF", "title", "Add player"],
+  ["#luFilterM", "placeholder", "Type a name…"],
+  ["#luFilterF", "placeholder", "Type a name…"],
+  ["#luFilterM", "aria-label", "Search player"],
+  ["#luFilterF", "aria-label", "Search player"],
   ["#stRefresh", "title", "Opens GitHub Actions — start “Run workflow” there (fetches the table from nuLiga)"],
 ];
 function applyStaticEn() {
@@ -194,6 +203,12 @@ showTab(location.hash.slice(1) || localStorage.getItem(TAB_KEY) || "termine");
 function esc(s) {
   return String(s).replace(/[&<>"']/g, c =>
     ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+/* Fold a name for tolerant matching: lower case, ß = ss, combining accents
+   stripped — so "kuster", "küster" and "KÜSTER" all match "Küster". */
+function fold(s) {
+  return String(s).toLowerCase().replace(/ß/g, "ss")
+    .normalize("NFD").replace(/\p{M}/gu, "");
 }
 let toastTimer;
 function toast(msg, undo) {
@@ -852,34 +867,164 @@ function isSel(name) { return state.selected.includes(name); }
 function availMen()   { return state.players.filter(p => p.g === "m" && isSel(p.name)).sort((a, b) => a.rank - b.rank); }
 function availWomen() { return state.players.filter(p => p.g === "f" && isSel(p.name)).sort((a, b) => a.rank - b.rank); }
 
+/* Element ids per gender pane — both panes behave identically and independently */
+const PANE = {
+  m: { sel: "luSelM", count: "luCountM", toggle: "luAddToggleM", box: "luAvailM",
+       filter: "luFilterM", list: "luAvailListM", create: "luCreateM",
+       empty: "Keine Spieler ausgewählt" },
+  f: { sel: "luSelF", count: "luCountF", toggle: "luAddToggleF", box: "luAvailF",
+       filter: "luFilterF", list: "luAvailListF", create: "luCreateF",
+       empty: "Keine Spielerinnen ausgewählt" },
+};
+/* State of the add block: purely visual, deliberately not persisted. */
+const addUi = { m: { open: false, q: "", expanded: false },
+                f: { open: false, q: "", expanded: false } };
+/* Long available lists are capped like the pair lists. */
+const AVAIL_CAP = 30;
+
+function squadRow(p) {
+  return `
+    <li class="row checked" data-name="${esc(p.name)}">
+      <input type="checkbox" class="avail" data-name="${esc(p.name)}" checked
+        aria-label="${tt("{0} verfügbar", esc(p.name))}">
+      <span class="rank">${p.rank}</span>
+      <span class="name">${esc(p.name)}</span>
+      <button class="del" data-del="${esc(p.name)}" aria-label="${tt("{0} löschen", esc(p.name))}">×</button>
+    </li>`;
+}
+
+/* The Kader shows only the selected players; everyone else sits behind "+". */
 function renderSquad() {
-  for (const [paneId, g] of [["luPaneM", "m"], ["luPaneF", "f"]]) {
+  for (const g of ["m", "f"]) {
+    const ids = PANE[g];
     const group = state.players.filter(p => p.g === g).sort((a, b) => a.rank - b.rank);
-    const selCount = group.filter(p => isSel(p.name)).length;
-    document.getElementById(g === "m" ? "luCountM" : "luCountF").textContent =
-      `${selCount}/${group.length}`;
-    const pane = document.getElementById(paneId);
-    pane.innerHTML = "";
-    const mkRow = p => {
-      const li = document.createElement("li");
-      li.className = "row " + (isSel(p.name) ? "checked" : "off");
-      li.dataset.name = p.name;
-      li.innerHTML = `
-        <input type="checkbox" class="avail" data-name="${esc(p.name)}" ${isSel(p.name) ? "checked" : ""}
-          aria-label="${tt("{0} verfügbar", esc(p.name))}">
-        <span class="rank">${p.rank}</span>
-        <span class="name">${esc(p.name)}</span>
-        <button class="del" data-del="${esc(p.name)}" aria-label="${tt("{0} löschen", esc(p.name))}">×</button>`;
-      return li;
-    };
-    const selUl = document.createElement("ul");
-    selUl.className = "rows pinned";
-    const restUl = document.createElement("ul");
-    restUl.className = "rows";
-    group.forEach(p => (isSel(p.name) ? selUl : restUl).appendChild(mkRow(p)));
-    if (selUl.children.length) pane.appendChild(selUl);
-    pane.appendChild(restUl);
+    const sel = group.filter(p => isSel(p.name));
+    document.getElementById(ids.count).textContent = `${sel.length}/${group.length}`;
+    document.getElementById(ids.sel).innerHTML = sel.length
+      ? `<ul class="rows">${sel.map(squadRow).join("")}</ul>`
+      : `<p class="kd-empty">${t(ids.empty)}</p>`;
+    renderAvail(g);
   }
+}
+
+/* Players of this pane not yet selected, by rank. */
+function poolOf(g) {
+  return state.players.filter(p => p.g === g && !isSel(p.name))
+    .sort((a, b) => a.rank - b.rank);
+}
+function matchesOf(g) {
+  const q = fold(addUi[g].q.trim());
+  const pool = poolOf(g);
+  return q ? pool.filter(p => fold(p.name).includes(q)) : pool;
+}
+/* "Create new" only makes sense when something was typed and the name does not
+   exist in this pane yet (not even as an already-selected player). */
+function createName(g) {
+  const typed = addUi[g].q.trim();
+  if (!typed) return "";
+  const exists = state.players.some(p => p.g === g && fold(p.name) === fold(typed));
+  return exists ? "" : typed;
+}
+
+function renderAvail(g) {
+  const ids = PANE[g], ui = addUi[g];
+  const toggle = document.getElementById(ids.toggle);
+  document.getElementById(ids.box).hidden = !ui.open;
+  toggle.setAttribute("aria-expanded", String(ui.open));
+  toggle.textContent = ui.open ? "×" : "+";
+  if (!ui.open) return;
+
+  const hits = matchesOf(g);
+  const vis = ui.expanded ? hits : hits.slice(0, AVAIL_CAP);
+  const rows = vis.map(p => `
+    <button type="button" class="kd-cand" data-add="${esc(p.name)}"
+      aria-label="${tt("{0} hinzufügen", esc(p.name))}">
+      <span class="rank">${p.rank}</span><span class="name">${esc(p.name)}</span>
+    </button>`).join("");
+  const empty = hits.length ? "" : `<p class="kd-empty">${t("Kein Treffer")}</p>`;
+  const more = vis.length < hits.length
+    ? `<div class="more-row"><button type="button" class="btn small" data-availmore="${g}">${tt("Alle {0} anzeigen", hits.length)}</button></div>`
+    : "";
+  document.getElementById(ids.list).innerHTML = rows + empty + more;
+  /* The create row sits outside the scrolling list and thus stays visible —
+     even with 30 hits. */
+  const newName = createName(g);
+  document.getElementById(ids.create).innerHTML = `
+    <button type="button" class="kd-create" data-create="${g}" ${newName ? "" : "disabled"}>
+      ${tt("„{0}“ neu anlegen", esc(ui.q.trim() || "…"))}
+    </button>`;
+}
+
+function setAddOpen(g, open) {
+  const ui = addUi[g], input = document.getElementById(PANE[g].filter);
+  ui.open = open;
+  if (!open) { ui.q = ""; ui.expanded = false; input.value = ""; }
+  renderAvail(g);
+  if (open) input.focus();
+}
+
+/* Select a player — the block stays open and the filter restarts empty,
+   so several players can be added one after another. */
+function selectPlayer(g, name) {
+  if (!isSel(name)) state.selected.push(name);
+  const ui = addUi[g], input = document.getElementById(PANE[g].filter);
+  ui.q = ""; ui.expanded = false; input.value = "";
+  save();
+  renderAll();
+  input.focus();
+}
+
+function createPlayer(g, name) {
+  name = String(name || "").trim();
+  if (!name) return;
+  /* Names key the whole lineup — prevent duplicates across gender boundaries
+     too, otherwise selection and pairs collide. */
+  if (state.players.some(p => fold(p.name) === fold(name))) {
+    toast(t("Spieler existiert bereits"));
+    return;
+  }
+  const rank = state.players.filter(p => p.g === g)
+    .reduce((mx, p) => Math.max(mx, p.rank || 0), 0) + 1;
+  state.players.push({ name, rank, g });
+  selectPlayer(g, name);
+}
+
+for (const g of ["m", "f"]) {
+  const ids = PANE[g], ui = addUi[g];
+  const input = document.getElementById(ids.filter);
+
+  document.getElementById(ids.toggle).addEventListener("click", () => setAddOpen(g, !ui.open));
+
+  input.addEventListener("input", () => {
+    ui.q = input.value;
+    ui.expanded = false; /* a new search starts capped again */
+    renderAvail(g);
+  });
+
+  document.getElementById(ids.box).addEventListener("keydown", e => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setAddOpen(g, false);
+      document.getElementById(ids.toggle).focus();
+      return;
+    }
+    if (e.key !== "Enter" || e.target !== input) return;
+    e.preventDefault();
+    const hits = matchesOf(g);
+    if (ui.q.trim() && hits.length === 1) { selectPlayer(g, hits[0].name); return; }
+    const newName = createName(g);
+    if (newName) createPlayer(g, newName);
+  });
+
+  /* Delegation on the whole block: hit list and create row are siblings */
+  document.getElementById(ids.box).addEventListener("click", e => {
+    const add = e.target.closest("button[data-add]");
+    if (add) { selectPlayer(g, add.dataset.add); return; }
+    const more = e.target.closest("button[data-availmore]");
+    if (more) { ui.expanded = true; renderAvail(g); return; }
+    const create = e.target.closest("button[data-create]");
+    if (create && !create.disabled) createPlayer(g, createName(g));
+  });
 }
 
 for (const id of ["luPaneM", "luPaneF"]) {
@@ -915,22 +1060,6 @@ for (const id of ["luPaneM", "luPaneF"]) {
     });
   });
 }
-
-document.getElementById("luAddForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const name = document.getElementById("luAddName").value.trim();
-  const g = document.getElementById("luAddGender").value;
-  if (!name) return;
-  if (state.players.some(p => p.name === name)) { toast(t("Spieler existiert bereits")); return; }
-  const rank = state.players.filter(p => p.g === g)
-    .reduce((mx, p) => Math.max(mx, p.rank || 0), 0) + 1;
-  state.players.push({ name, rank, g });
-  state.selected.push(name);
-  save();
-  renderAll();
-  e.target.reset();
-  document.getElementById("luAddName").focus();
-});
 
 function pairLabel(p) { return `${esc(p[0].name)} + ${esc(p[1].name)}`; }
 function pairSum(p) { return p[0].rank + p[1].rank; }
