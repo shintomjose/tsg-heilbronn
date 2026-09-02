@@ -23,6 +23,14 @@ statically in `standings.js`.
 
 ## Updating the standings after a match day
 
+**Automatic:** the GitHub Action `.github/workflows/update-standings.yml` fetches the
+nuLiga table every Sunday and Monday morning (results appear there the day after the
+Saturday matches), rewrites `standings.js` and pushes — GitHub Pages then publishes it.
+It can also be started by hand: repo → Actions → "Update standings" → Run workflow.
+Local run: `node scripts/update-standings.mjs`.
+
+**Manual fallback** (nuLiga layout change, network trouble):
+
 1. Open `standings.js`.
 2. Edit the entries in `rows` — array order = display order:
    `rang` (rank), `team`, `beg` (matches played), `s`/`u`/`n` (wins/draws/losses),
@@ -31,9 +39,12 @@ statically in `standings.js`.
 4. Commit and push — GitHub Pages publishes the change automatically.
    Already-open apps show the "Neue Version verfügbar — Aktualisieren" update button.
 
-The source (nuLiga) is linked in the header of `standings.js`. On load the app tries to
-fetch the table live; when that fails (CORS usually blocks it) the values from
-`standings.js` are shown — which is why manual upkeep matters.
+The source (nuLiga) is linked in the header of `standings.js`. On load the app also tries
+to fetch the table live; when that fails (CORS usually blocks it) the values from
+`standings.js` are shown — which is why the upkeep matters.
+
+Note: the Firebase Hosting mirror (tsg-badminton-our-team.web.app) is NOT updated by the
+Action — run `firebase deploy --only hosting:team4` to refresh it.
 
 Our own team is highlighted in the table: its row gets the `own-team` class and a green tint.
 
