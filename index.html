@@ -36,6 +36,12 @@
   <!-- ============ TAB 1: Termine (matches) ============ -->
   <section class="tab-panel" id="tab-termine" role="tabpanel" aria-labelledby="tabbtn-termine">
     <p class="tab-sub">Spieltermine SG Heilbronn/Leingarten IV — Bezirksliga „Neckar-Odenwald" 2026/27 · alle Spiele samstags</p>
+    <section class="panel" id="stPanel">
+      <h2>Tabelle <span class="hint">— Bezirksliga „Neckar-Odenwald" (3-4)</span> <span id="stTabStatus" class="av-status"></span></h2>
+      <div class="standings-scroll">
+        <table class="standings-table" id="standingsTable"></table>
+      </div>
+    </section>
     <!-- phone only: switch between the two rounds; desktop shows both panels -->
     <div class="seg-tabs rounds-tabs" role="tablist" aria-label="Runde">
       <button id="rdTabVor" role="tab" aria-selected="true" aria-controls="rdPaneVor">Vorrunde</button>
@@ -51,12 +57,6 @@
         <table class="match-table" id="mtRueck"></table>
       </section>
     </div>
-    <section class="panel" id="stPanel">
-      <h2>Tabelle <span class="hint">— Bezirksliga „Neckar-Odenwald" (3-4)</span> <span id="stTabStatus" class="av-status"></span></h2>
-      <div class="standings-scroll">
-        <table class="standings-table" id="standingsTable"></table>
-      </div>
-    </section>
     <section class="panel" id="avPanel">
       <h2>Verfügbarkeit <span class="hint">— Klick auf Zelle: — → ✓ → ✗ · live geteilt mit dem Team</span> <span id="avStatus" class="av-status">verbinde…</span></h2>
       <div class="who-row">

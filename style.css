@@ -251,15 +251,9 @@
      Desktop keeps both round panels visible, so the switcher stays hidden there. */
   .seg-tabs.rounds-tabs { display: none; }
 
-  /* ---- phone layout: standings first, one round at a time ---- */
+  /* ---- phone layout: one round at a time ----
+     (standings sit first in the DOM on all widths, no reordering needed) */
   @media (max-width: 720px) {
-    /* pure-CSS reordering: the DOM order stays desktop-first */
-    #tab-termine { display: flex; flex-direction: column; }
-    #tab-termine .tab-sub   { order: 1; }
-    #tab-termine #stPanel   { order: 2; }
-    #tab-termine .rounds-tabs { order: 3; }
-    #tab-termine .rounds    { order: 4; }
-    #tab-termine #avPanel   { order: 5; }
     /* full-width two-button switcher, one button per half of the row */
     .seg-tabs.rounds-tabs { display: flex; }
     .seg-tabs.rounds-tabs button {
