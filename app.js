@@ -54,6 +54,7 @@ const EN = {
   "Keine Spieler ausgewählt": "No players selected",
   "Keine Spielerinnen ausgewählt": "No players selected",
   "Kein Treffer": "No match",
+  "Weitere aus Team 4": "More from Team 4",
   "Aufstellung": "Lineup",
   "Aufstellung kopiert": "Lineup copied",
   "Auswahl geleert": "Selection cleared",
@@ -813,9 +814,24 @@ const STORE_KEY = "nuliga-lineup-v4";
 /* This app is the 4th Mannschaft — the number is hard-wired. */
 const TEAM_NO = 4;
 
+/* Only this many men start selected; the remaining Team 4 men wait on the bench. */
+const DEFAULT_MEN = 4;
+
+/* Default squad: every Team 4 woman, but only the DEFAULT_MEN best-ranked men.
+   The other team members are not lost — renderSquad shows them as bench chips. */
+function defaultSelection(players) {
+  const byName = Object.fromEntries(players.map(p => [p.name, p]));
+  const members = teamMembers(TEAM_NO).filter(n => byName[n]);
+  const men = members.filter(n => byName[n].g === "m")
+    .sort((a, b) => byName[a].rank - byName[b].rank)
+    .slice(0, DEFAULT_MEN);
+  const women = members.filter(n => byName[n].g === "f");
+  return [...men, ...women];
+}
+
 function defaultState(chem) {
   const players = ORIGINAL.map(p => ({...p}));
-  const selected = teamMembers(TEAM_NO).filter(n => players.some(p => p.name === n));
+  const selected = defaultSelection(players);
   return {
     players, selected, team: TEAM_NO,
     chem: chem || {},
@@ -850,8 +866,8 @@ function load() {
         s.hd1 = null; s.hd2 = null; s.dd = null; s.gd = null;
         s.he = null; s.de = null;
       }
-      /* the team assignment (shared via Firebase) is the source: re-apply the selection */
-      s.selected = teamMembers(TEAM_NO).filter(n => s.players.some(p => p.name === n));
+      /* the team assignment (shared via Firebase) is the source: re-apply the default selection */
+      s.selected = defaultSelection(s.players);
       return s;
     }
   } catch {}
@@ -869,10 +885,10 @@ function availWomen() { return state.players.filter(p => p.g === "f" && isSel(p.
 
 /* Element ids per gender pane — both panes behave identically and independently */
 const PANE = {
-  m: { sel: "luSelM", count: "luCountM", toggle: "luAddToggleM", box: "luAvailM",
+  m: { sel: "luSelM", bench: "luBenchM", count: "luCountM", toggle: "luAddToggleM", box: "luAvailM",
        filter: "luFilterM", list: "luAvailListM", create: "luCreateM",
        empty: "Keine Spieler ausgewählt" },
-  f: { sel: "luSelF", count: "luCountF", toggle: "luAddToggleF", box: "luAvailF",
+  f: { sel: "luSelF", bench: "luBenchF", count: "luCountF", toggle: "luAddToggleF", box: "luAvailF",
        filter: "luFilterF", list: "luAvailListF", create: "luCreateF",
        empty: "Keine Spielerinnen ausgewählt" },
 };
@@ -903,8 +919,28 @@ function renderSquad() {
     document.getElementById(ids.sel).innerHTML = sel.length
       ? `<ul class="rows">${sel.map(squadRow).join("")}</ul>`
       : `<p class="kd-empty">${t(ids.empty)}</p>`;
+    renderBench(g);
     renderAvail(g);
   }
+}
+
+/* Team 4 members of this pane that are not selected: one tap puts them in. */
+function benchOf(g) {
+  const members = teamMembers(TEAM_NO);
+  return state.players.filter(p => p.g === g && members.includes(p.name) && !isSel(p.name))
+    .sort((a, b) => a.rank - b.rank);
+}
+function renderBench(g) {
+  const box = document.getElementById(PANE[g].bench);
+  const bench = benchOf(g);
+  box.hidden = !bench.length;
+  box.innerHTML = bench.length ? `
+    <span class="kd-bench-label">${t("Weitere aus Team 4")}</span>
+    ${bench.map(p => `
+      <button type="button" class="kd-chip" data-bench="${esc(p.name)}"
+        aria-label="${tt("{0} hinzufügen", esc(p.name))}">
+        <span class="plus">+</span><span class="rank">${p.rank}</span><span class="name">${esc(p.name)}</span>
+      </button>`).join("")}` : "";
 }
 
 /* Players of this pane not yet selected, by rank. */
@@ -1039,6 +1075,13 @@ for (const id of ["luPaneM", "luPaneF"]) {
     renderAll();
   });
   ul.addEventListener("click", e => {
+    const chip = e.target.closest("button[data-bench]");
+    if (chip) {
+      if (!isSel(chip.dataset.bench)) state.selected.push(chip.dataset.bench);
+      save();
+      renderAll();
+      return;
+    }
     const del = e.target.closest("button[data-del]");
     if (!del) return;
     const name = del.dataset.del;
@@ -1440,7 +1483,7 @@ function teamMembers(n) {
 /* called when the shared team assignment arrives from the cloud */
 window.luRefreshTeamSelection = function () {
   if (!state.team) return;
-  const members = teamMembers(state.team).filter(n => state.players.some(p => p.name === n));
+  const members = defaultSelection(state.players);
   if (JSON.stringify(members) === JSON.stringify(state.selected)) return;
   state.selected = members;
   save();

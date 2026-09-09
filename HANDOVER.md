@@ -24,7 +24,9 @@ branch `main`, root folder). Intended audience: Team 4 members only.
   and this app's notifications keep working.
 - **Aufstellung tab**: full club roster (59 men / 26 women), Team 4 hard-pinned
   (`TEAM_NO = 4` in app.js) — team pills removed; selection auto-follows the shared
-  team assignment from the cloud.
+  team assignment from the cloud. Default squad = all Team 4 women + only the
+  `DEFAULT_MEN` (4) best-ranked Team 4 men; the remaining team men appear as one-tap
+  bench chips under the Kader list ("Weitere aus Team 4"), everyone else behind "+".
 - **Standings**: `standings.js` → `window.STANDINGS` (static, hand-edited after each
   match day). On load, app tries a live fetch of the nuLiga group page (URL in
   standings.js header) with a 6 s timeout and DOMParser parsing; CORS normally blocks
