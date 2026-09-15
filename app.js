@@ -7,6 +7,7 @@ const DATE_LOCALE = LANG === "en" ? "en-GB" : "de-DE";
 /* dynamic strings: the German text is the key */
 const EN = {
   "Rückgängig": "Undo",
+  "Lade neu …": "Reloading …",
   "Kopieren fehlgeschlagen": "Copy failed",
   "Herren": "Men",
   "Damen": "Women",
@@ -121,6 +122,8 @@ const STATIC_EN_HTML = [
   ["#tab-lineup .col-right .panel:nth-child(5) h2", "Lineup"],
 ];
 const STATIC_EN_ATTR = [
+  ["#reloadBtn", "aria-label", "Reload app"],
+  ["#reloadBtn", "title", "Reload app"],
   ["#luAddToggleM", "title", "Add player"],
   ["#luAddToggleF", "title", "Add player"],
   ["#luFilterM", "placeholder", "Type a name…"],
@@ -181,6 +184,27 @@ document.getElementById("themeBtn").addEventListener("click", () => {
 });
 const savedTheme = localStorage.getItem(THEME_KEY);
 applyTheme(savedTheme || "light");
+
+/* ---- header reload: drop the service worker and every cache, then reload
+   from the network — the recovery when an installed app is stuck on an old
+   build or a cached script copy does not run ---- */
+window.hardReload = async function hardReload() {
+  try {
+    if (navigator.serviceWorker) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    if (window.caches) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch (e) { console.warn("[app] Cache leeren fehlgeschlagen:", e); }
+  location.reload();
+};
+document.getElementById("reloadBtn").addEventListener("click", () => {
+  toast(t("Lade neu …"));
+  window.hardReload();
+});
 /* pwa.js only injects the theme-color meta tag after this script */
 window.addEventListener("load", () => applyTheme(document.documentElement.dataset.theme));
 

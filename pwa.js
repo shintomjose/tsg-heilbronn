@@ -74,16 +74,38 @@
     document.body.appendChild(btn);
   }
 
+  /* clients.claim() on the very first install fires controllerchange for a
+     page that had no controller yet — reloading then would throw away what
+     the visitor already typed. Only a real worker swap reloads. */
+  const hadController = !!navigator.serviceWorker.controller;
   let reloading = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (reloading) return;
+    if (!hadController || reloading) return;
     reloading = true;
     location.reload();
   });
 
+  /* An installed app (iOS especially) can stay open for days without a
+     navigation, and the browser only checks for a new worker on navigation.
+     So: check whenever the app returns to the foreground, and hourly while
+     it stays open. A found update shows the usual button. */
+  let registration = null;
+  let lastCheck = 0;
+  function checkForUpdate() {
+    if (!registration || document.visibilityState !== "visible") return;
+    const now = Date.now();
+    if (now - lastCheck < 60 * 1000) return;            // not on every tab flick
+    lastCheck = now;
+    registration.update().catch(() => {});
+  }
+  document.addEventListener("visibilitychange", checkForUpdate);
+  setInterval(checkForUpdate, 60 * 60 * 1000);
+
   window.addEventListener("load", async () => {
     try {
       const reg = await navigator.serviceWorker.register("sw.js");
+      registration = reg;
+      lastCheck = Date.now();
       if (reg.waiting && navigator.serviceWorker.controller) showUpdateButton(reg.waiting);
       reg.addEventListener("updatefound", () => {
         const nw = reg.installing;
