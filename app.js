@@ -151,12 +151,10 @@ function applyStaticEn() {
     stH2.childNodes[0].textContent = "Standings ";
     stH2.querySelector(".hint").textContent = "— Bezirksliga „Neckar-Odenwald“ (3-4)";
   }
-  const avStatusEl = document.getElementById("avStatus");
-  const availH2 = avStatusEl && avStatusEl.closest("h2");
-  if (availH2 && availH2.querySelector(".hint")) {
-    availH2.childNodes[0].textContent = "Availability ";
-    availH2.querySelector(".hint").textContent = "— tap a cell: — → ✓ → ✗ · shared live with the team";
-  }
+  const availH2 = document.querySelector("#avPanel .panel-head h2");
+  if (availH2) availH2.textContent = "Availability";
+  const avHint = document.getElementById("avHint");
+  if (avHint) avHint.textContent = "Tap a cell: — → ✓ → ✗ · shared live with the team";
 }
 applyStaticEn();
 
@@ -418,7 +416,12 @@ let avSeeded = false;
 /* names as DB keys: replace forbidden characters */
 function avKey(name) { return name.replace(/[.#$/\[\]]/g, "_"); }
 function avState(name, dayKey) { return (av.marks[dayKey] || {})[avKey(name)] || "u"; }
-function avStatus(txt) { document.getElementById("avStatus").textContent = txt; }
+/* status pill: ● = live (green), ○ = offline/denied (red), anything else = waiting (amber) */
+function avStatus(txt) {
+  const el = document.getElementById("avStatus");
+  el.textContent = txt;
+  el.className = "av-status " + (txt.startsWith("●") ? "live" : txt.startsWith("○") ? "off" : "wait");
+}
 
 /* honour system: everyone picks their name once, changes are logged under it */
 const WHO_KEY = "termine-whoami";

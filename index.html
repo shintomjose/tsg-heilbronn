@@ -58,7 +58,11 @@
       </section>
     </div>
     <section class="panel" id="avPanel">
-      <h2>Verfügbarkeit <span class="hint">— Klick auf Zelle: — → ✓ → ✗ · live geteilt mit dem Team</span> <span id="avStatus" class="av-status">verbinde…</span></h2>
+      <div class="panel-head">
+        <h2>Verfügbarkeit</h2>
+        <span id="avStatus" class="av-status wait" role="status" aria-live="polite">verbinde…</span>
+      </div>
+      <p class="panel-hint" id="avHint">Klick auf Zelle: — → ✓ → ✗ · live geteilt mit dem Team</p>
       <div class="who-row">
         <label for="avWho">Ich bin:</label>
         <select id="avWho"><option value="">— Name wählen —</option></select>

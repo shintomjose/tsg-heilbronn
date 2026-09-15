@@ -292,8 +292,12 @@
      overflow-x — shrinks sideways to avoid it, squeezing the table to roughly
      two thirds of the panel and wrapping the headers. flow-root keeps the float
      inside the heading where it belongs. */
-  /* #avStatus floats the same way in the availability heading — same containment. */
-  #stPanel > h2, #avPanel > h2 { display: flow-root; }
+  #stPanel > h2 { display: flow-root; }
+  /* panel heading with a pill on the right; the hint gets its own line below
+     instead of wrapping around the pill */
+  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px 12px; flex-wrap: wrap; margin-bottom: 6px; }
+  .panel-head h2 { margin: 0; }
+  .panel-hint { margin: 0 0 12px; color: var(--text-muted); font-size: 0.88em; }
   .standings-scroll { overflow-x: auto; }
   .standings-table { border-collapse: collapse; width: 100%; }
   .standings-table th, .standings-table td {
@@ -348,11 +352,15 @@
   .st-refresh:focus-visible { outline: none; box-shadow: var(--ring); }
 
   #tab-termine .avail-scroll { overflow-x: auto; }
-  .avail-table { border-collapse: collapse; width: 100%; }
+  /* separate borders: with border-collapse the sticky name column would leave
+     its borders behind while scrolling */
+  .avail-table { border-collapse: separate; border-spacing: 0; width: 100%; }
   .avail-table th, .avail-table td {
     padding: 7px 9px; border-bottom: 1px solid var(--border);
     text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap;
   }
+  /* vertical rule between the date columns */
+  .avail-table th + th, .avail-table td + td { border-left: 1px solid var(--border); }
   .avail-table th {
     font-family: var(--font-disp);
     font-size: 0.76rem; letter-spacing: 0.06em; text-transform: uppercase;
@@ -369,13 +377,19 @@
   .avail-table td.av.n { color: var(--danger); }
   .avail-table td.av.u { color: var(--text-muted); opacity: 0.55; }
   .avail-table tr.av-sum td { border-bottom: 0; color: var(--teal-ink); font-weight: 700; }
+  /* connection pill: green live, red offline/denied, amber while waiting */
   .av-status {
-    float: right;
     font-family: var(--font-body);
-    font-size: 0.72em; font-weight: 500;
+    font-size: 0.78rem; font-weight: 600;
     text-transform: none; letter-spacing: 0;
-    color: var(--text-muted);
+    white-space: nowrap;
+    border: 1px solid var(--border); border-radius: 999px;
+    padding: 4px 12px;
+    background: var(--surface-1); color: var(--text-muted);
   }
+  .av-status.live { color: var(--court-green); border-color: color-mix(in srgb, var(--court-green) 45%, transparent); background: color-mix(in srgb, var(--court-green) 10%, var(--surface-1)); }
+  .av-status.off  { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, transparent); background: color-mix(in srgb, var(--danger) 10%, var(--surface-1)); }
+  .av-status.wait { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, transparent); background: color-mix(in srgb, var(--warn) 10%, var(--surface-1)); }
   .who-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
   .who-row label {
     font-weight: 600; color: var(--text-muted); font-size: 0.9em;
@@ -470,12 +484,18 @@
       padding: 5px 4px; font-size: 0.74rem;
     }
     .av-table-mode .avail-table td.av { min-width: 2.2em; font-size: 0.95em; }
+    /* sticky name column: full names wrap onto a second line instead of
+       being cut off; the inset shadow is its right border (a real border
+       would not stick) */
     .av-table-mode .avail-table th:first-child,
     .av-table-mode .avail-table td:first-child {
       position: sticky; left: 0; z-index: 1;
       background: var(--surface-1);
-      max-width: 104px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      width: 124px; min-width: 124px; max-width: 124px;
+      white-space: normal; overflow-wrap: normal; line-height: 1.2;
+      box-shadow: inset -1px 0 0 var(--border);
     }
+    .av-table-mode .avail-table td.avname { font-size: 0.78rem; }
   }
   @media (max-width: 480px) {
     .match-table th, .match-table td { padding: 6px 4px; font-size: 0.8em; }
