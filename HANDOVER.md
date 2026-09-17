@@ -55,7 +55,7 @@ Same `FB_CONFIG` (project badminton-tools-c6b27, europe-west1 RTDB). Paths:
 
 | Path | This app | Notes |
 | --- | --- | --- |
-| `avail/players` | read | list of names in the availability matrix (add/remove only in main app) |
+| `avail/players` | read (seed on empty only) | list of names in the availability matrix. The main app appends every name of its `AV_DEFAULT_PLAYERS` that is missing on load — to add a player permanently, add the name to that constant in both apps (keep them identical); to remove one, drop it from both constants and delete it from the DB once. |
 | `avail/marks/{matchId}/{nameKey}` | read/write | own marks only (honesty principle via "Ich bin" select) |
 | `avail/log` | write + read (no UI) | entries pushed on every change; the read listener only feeds notifications — the Verlauf UI is main-app-only |
 | `teams` | READ-ONLY | team assignment; cached to localStorage `bwbv-ranking-v5`, then `luRefreshTeamSelection()`. This app must NEVER write/seed `teams` (the main app has a seed-on-empty branch; this one deliberately does not). |

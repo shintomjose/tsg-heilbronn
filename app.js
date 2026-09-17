@@ -428,9 +428,13 @@ const AV_DEFAULT_PLAYERS = [
   "Rajendraprasad, Anurag",
   "Chu, Cuong Xuan",
   "Mathew Jose, Shinto",
+  "Banik, Udayan",
+  "Oechsle, Marc",
+  "Vogt, Alexander",
   "Dujic, Lucija",
   "Schebesch, Carolin",
   "Croll, Alessia",
+  "Pflugfelder, Susanne",
 ];
 
 let av = { players: [], marks: {} };
