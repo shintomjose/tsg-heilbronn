@@ -21,6 +21,7 @@ const EN = {
   "○ offline — keine Verbindung": "○ offline — no connection",
   "○ Zugriff verweigert — DB-Regeln prüfen": "○ access denied — check DB rules",
   "Verbinde mit Datenbank…": "Connecting to database…",
+  "Noch keine Spieler — die Liste wird in der Haupt-App gepflegt.": "No players yet — the list is managed in the main app.",
   "— Name wählen —": "— pick your name —",
   "✓ Dabei": "✓ I'm in",
   "✗ Keine Zeit": "✗ Can't play",
@@ -423,23 +424,12 @@ const DAYS = MATCHES.map(m => ({ key: m.id, date: m.date, day: m.day, time: m.ti
 const MIN_M = 4;
 const MIN_F = 2;
 
-const AV_DEFAULT_PLAYERS = [
-  "Bolt-Bevilacqua, Nicolas",
-  "Rajendraprasad, Anurag",
-  "Chu, Cuong Xuan",
-  "Mathew Jose, Shinto",
-  "Banik, Udayan",
-  "Oechsle, Marc",
-  "Vogt, Alexander",
-  "Dujic, Lucija",
-  "Schebesch, Carolin",
-  "Croll, Alessia",
-  "Pflugfelder, Susanne",
-];
-
-let av = { players: [], marks: {} };
+/* The names live only in the database (avail/players) and are managed in the main
+   app's Spiele tab under "Mannschaft 4"; the gender for the Herren/Damen counters sits
+   next to them under avail/gender, the ranking below is the fallback. */
+let av = { players: [], marks: {}, gender: {} };
 let avDb = null;
-let avSeeded = false;
+let avLoaded = false;
 
 /* names as DB keys: replace forbidden characters */
 function avKey(name) { return name.replace(/[.#$/\[\]]/g, "_"); }
@@ -507,7 +497,7 @@ function renderAvail() {
     <tr class="av-prog"><td>${tt("Herren (min. {0})", MIN_M)}</td>${days.map(d => progCell(progressFor(d.key).m, MIN_M)).join("")}</tr>
     <tr class="av-prog"><td>${tt("Damen (min. {0})", MIN_F)}</td>${days.map(d => progCell(progressFor(d.key).f, MIN_F)).join("")}</tr>`;
   const empty = av.players.length ? "" :
-    `<tr><td colspan="${days.length + 1}" style="color:var(--text-muted);font-style:italic">${t("Verbinde mit Datenbank…")}</td></tr>`;
+    `<tr><td colspan="${days.length + 1}" style="color:var(--text-muted);font-style:italic">${t(avLoaded ? "Noch keine Spieler — die Liste wird in der Haupt-App gepflegt." : "Verbinde mit Datenbank…")}</td></tr>`;
   document.getElementById("availTable").innerHTML = head + `<tbody>${empty}${body}${foot}</tbody>`;
   renderCards();
 }
@@ -540,7 +530,7 @@ function progressFor(dayKey) {
   let m = 0, f = 0;
   av.players.forEach(p => {
     if (avState(p, dayKey) !== "y") return;
-    const g = (window.LU_ROSTER_MAP || {})[p];
+    const g = av.gender[avKey(p)] || (window.LU_ROSTER_MAP || {})[p];
     if (g === "m") m++;
     else if (g === "f") f++;
   });
@@ -720,13 +710,9 @@ function notifyNewEntries(items) {
     avDb.ref("avail").on("value", snap => {
       availTries = 0;
       const v = snap.val() || {};
-      const players = Array.isArray(v.players) ? v.players.filter(n => typeof n === "string") : [];
-      if (!players.length && !avSeeded) {
-        avSeeded = true;
-        avDb.ref("avail/players").set(AV_DEFAULT_PLAYERS).catch(() => {});
-        return;
-      }
-      av.players = players;
+      avLoaded = true;
+      av.players = Array.isArray(v.players) ? v.players.filter(n => typeof n === "string") : [];
+      av.gender = v.gender && typeof v.gender === "object" ? v.gender : {};
       av.marks = v.marks || {};
       renderAvail();
       renderWho();
