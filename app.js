@@ -21,6 +21,9 @@ const EN = {
   "○ offline — keine Verbindung": "○ offline — no connection",
   "○ Zugriff verweigert — DB-Regeln prüfen": "○ access denied — check DB rules",
   "Verbinde mit Datenbank…": "Connecting to database…",
+  "Ersatz": "Sub",
+  "Ersatzspieler": "Replacement players",
+  "+{0} Ersatz": "+{0} sub",
   "Noch keine Spieler — die Liste wird in der Haupt-App gepflegt.": "No players yet — the list is managed in the main app.",
   "— Name wählen —": "— pick your name —",
   "✓ Dabei": "✓ I'm in",
@@ -427,12 +430,14 @@ const MIN_F = 2;
 /* The names live only in the database (avail/players) and are managed in the main
    app's Spiele tab under "Mannschaft 4"; the gender for the Herren/Damen counters sits
    next to them under avail/gender, the ranking below is the fallback. */
-let av = { players: [], marks: {}, gender: {} };
+let av = { players: [], marks: {}, gender: {}, role: {} };
 let avDb = null;
 let avLoaded = false;
 
 /* names as DB keys: replace forbidden characters */
 function avKey(name) { return name.replace(/[.#$/\[\]]/g, "_"); }
+/* Ersatzspieler: im Spiele-Tab der Haupt-App markiert, unter avail/role gespeichert */
+function avIsSub(name) { return av.role[avKey(name)] === "sub"; }
 function avState(name, dayKey) { return (av.marks[dayKey] || {})[avKey(name)] || "u"; }
 /* status pill: ● = live (green), ○ = offline/denied (red), anything else = waiting (amber) */
 function avStatus(txt) {
@@ -482,20 +487,27 @@ function renderAvail() {
       `<th colspan="${g.n}" class="th-date">${g.date.slice(0, 6)}</th>`).join("")}</tr>
     <tr class="th-times">${days.map(d => `<th class="th-time">${d.time}</th>`).join("")}</tr>
   </thead>`;
-  const body = av.players.map(name => `<tr>
-    <td class="avname">${esc(name)}</td>
+  const rowHtml = name => `<tr${avIsSub(name) ? ' class="av-sub"' : ""}>
+    <td class="avname">${esc(name)}${avIsSub(name) ? ` <span class="av-sub-badge">${t("Ersatz")}</span>` : ""}</td>
     ${days.map(d => {
       const st = avState(name, d.key);
       const locked = name !== whoami();
       return `<td class="av ${st}${locked ? " locked" : ""}" data-name="${esc(name)}" data-day="${d.key}"
         ${locked ? "" : 'role="button" tabindex="0"'} aria-label="${esc(name)} am ${d.date} ${d.time}">${avSym(st)}</td>`;
     }).join("")}
-  </tr>`).join("");
-  const progCell = (cnt, min) =>
-    `<td class="prog-cell ${cnt >= min ? "ok" : "miss"}">${cnt}/${min}</td>`;
+  </tr>`;
+  /* Stammspieler zuerst, dann die Ersatzspieler hinter einer Trennzeile */
+  const regular = av.players.filter(n => !avIsSub(n));
+  const subs = av.players.filter(avIsSub);
+  const divider = subs.length
+    ? `<tr class="av-divider"><td>${t("Ersatzspieler")}</td>${days.map(() => "<td></td>").join("")}</tr>` : "";
+  const body = regular.map(rowHtml).join("") + divider + subs.map(rowHtml).join("");
+  /* Zähler: Stammspieler füllen das Minimum, Ersatz-Zusagen stehen als "+n" daneben */
+  const progCell = (cnt, sub, min) =>
+    `<td class="prog-cell ${cnt >= min ? "ok" : "miss"}">${cnt}/${min}${sub ? `<span class="prog-sub">+${sub}</span>` : ""}</td>`;
   const foot = `
-    <tr class="av-prog"><td>${tt("Herren (min. {0})", MIN_M)}</td>${days.map(d => progCell(progressFor(d.key).m, MIN_M)).join("")}</tr>
-    <tr class="av-prog"><td>${tt("Damen (min. {0})", MIN_F)}</td>${days.map(d => progCell(progressFor(d.key).f, MIN_F)).join("")}</tr>`;
+    <tr class="av-prog"><td>${tt("Herren (min. {0})", MIN_M)}</td>${days.map(d => { const p = progressFor(d.key); return progCell(p.m, p.subM, MIN_M); }).join("")}</tr>
+    <tr class="av-prog"><td>${tt("Damen (min. {0})", MIN_F)}</td>${days.map(d => { const p = progressFor(d.key); return progCell(p.f, p.subF, MIN_F); }).join("")}</tr>`;
   const empty = av.players.length ? "" :
     `<tr><td colspan="${days.length + 1}" style="color:var(--text-muted);font-style:italic">${t(avLoaded ? "Noch keine Spieler — die Liste wird in der Haupt-App gepflegt." : "Verbinde mit Datenbank…")}</td></tr>`;
   document.getElementById("availTable").innerHTML = head + `<tbody>${empty}${body}${foot}</tbody>`;
@@ -527,25 +539,29 @@ for (const [id, view] of [["avViewCards", "cards"], ["avViewTable", "table"]]) {
 applyAvView();
 
 function progressFor(dayKey) {
-  let m = 0, f = 0;
+  let m = 0, f = 0, subM = 0, subF = 0;
   av.players.forEach(p => {
     if (avState(p, dayKey) !== "y") return;
     const g = av.gender[avKey(p)] || (window.LU_ROSTER_MAP || {})[p];
-    if (g === "m") m++;
-    else if (g === "f") f++;
+    const sub = avIsSub(p);
+    if (g === "m") { if (sub) subM++; else m++; }
+    else if (g === "f") { if (sub) subF++; else f++; }
   });
-  return { m, f };
+  return { m, f, subM, subF };
 }
 
-function progHtml(label, cnt, min) {
+function progHtml(label, cnt, min, sub) {
   const ok = cnt >= min;
   const missing = min - cnt;
   return `<div class="prog${ok ? " ok" : ""}">
     <span class="prog-label">${label}</span>
     <div class="prog-bar"><i style="width:${Math.min(100, (cnt / min) * 100)}%"></i></div>
-    <span class="prog-txt">${cnt}/${min}${ok ? " ✓" : " " + (missing === 1 ? tt("· {0} fehlt", missing) : tt("· {0} fehlen", missing))}</span>
+    <span class="prog-txt">${cnt}/${min}${sub ? ` <span class="prog-sub">${tt("+{0} Ersatz", sub)}</span>` : ""}${ok ? " ✓" : " " + (missing === 1 ? tt("· {0} fehlt", missing) : tt("· {0} fehlen", missing))}</span>
   </div>`;
 }
+
+/* Name in den Karten-Listen, Ersatzspieler mit (E) */
+function avNameHtml(name) { return esc(name) + (avIsSub(name) ? " (E)" : ""); }
 
 function renderCards() {
   const el = document.getElementById("availCards");
@@ -563,15 +579,15 @@ function renderCards() {
         <span class="badge-ha ${m.home ? "h" : "a"}">${t(m.home ? "Heim" : "Auswärts")}</span>
       </div>
       <div class="av-card-opp">${esc(m.opp)}</div>
-      ${progHtml(t("Herren"), pr.m, MIN_M)}
-      ${progHtml(t("Damen"), pr.f, MIN_F)}
+      ${progHtml(t("Herren"), pr.m, MIN_M, pr.subM)}
+      ${progHtml(t("Damen"), pr.f, MIN_F, pr.subF)}
       <div class="me-row">
         <button type="button" class="me-btn y${mine === "y" ? " on" : ""}" data-day="${d.key}" data-set="y">${t("✓ Dabei")}</button>
         <button type="button" class="me-btn n${mine === "n" ? " on" : ""}" data-day="${d.key}" data-set="n">${t("✗ Keine Zeit")}</button>
       </div>
       ${yes.length || no.length ? `<details class="av-names"><summary>${yes.length} ✓ · ${no.length} ✗</summary>
-        ${yes.length ? `<div class="log-row y"><span class="log-mark">✓</span><span>${yes.map(esc).join(", ")}</span></div>` : ""}
-        ${no.length ? `<div class="log-row n"><span class="log-mark">✗</span><span>${no.map(esc).join(", ")}</span></div>` : ""}
+        ${yes.length ? `<div class="log-row y"><span class="log-mark">✓</span><span>${yes.map(avNameHtml).join(", ")}</span></div>` : ""}
+        ${no.length ? `<div class="log-row n"><span class="log-mark">✗</span><span>${no.map(avNameHtml).join(", ")}</span></div>` : ""}
       </details>` : ""}
     </div>`);
   });
@@ -713,6 +729,7 @@ function notifyNewEntries(items) {
       avLoaded = true;
       av.players = Array.isArray(v.players) ? v.players.filter(n => typeof n === "string") : [];
       av.gender = v.gender && typeof v.gender === "object" ? v.gender : {};
+      av.role = v.role && typeof v.role === "object" ? v.role : {};
       av.marks = v.marks || {};
       renderAvail();
       renderWho();

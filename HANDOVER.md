@@ -57,6 +57,7 @@ Same `FB_CONFIG` (project badminton-tools-c6b27, europe-west1 RTDB). Paths:
 | --- | --- | --- |
 | `avail/players` | READ-ONLY | list of names in the availability matrix. Managed by the owner in the main app's Spiele tab ("Mannschaft 4", `tracker-team.js`); the database rules bind writes to the owner's uid, so this app never writes or seeds it. |
 | `avail/gender/{nameKey}` | READ-ONLY | `m` / `f` per listed name, written by the same editor; feeds the Herren/Damen counters (the ranking in app.js is the fallback for names without an entry). |
+| `avail/role/{nameKey}` | READ-ONLY | `sub` for replacement players, set by the same editor; they render behind an Ersatzspieler divider with a badge, (E) in the card lists, and their ✓ count as "+n" beside the minimum, not inside it. |
 | `avail/marks/{matchId}/{nameKey}` | read/write | own marks only (honesty principle via "Ich bin" select) |
 | `avail/log` | write + read (no UI) | entries pushed on every change; the read listener only feeds notifications — the Verlauf UI is main-app-only |
 | `teams` | READ-ONLY | team assignment; cached to localStorage `bwbv-ranking-v5`, then `luRefreshTeamSelection()`. This app must NEVER write/seed `teams` (the main app has a seed-on-empty branch; this one deliberately does not). |
