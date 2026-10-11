@@ -8,7 +8,7 @@
  */
 "use strict";
 
-const VERSION = "v9";
+const VERSION = "v10";
 const SHELL_CACHE = `shell-${VERSION}`;
 const ICON_CACHE = `icons-${VERSION}`;
 const CDN_CACHE = `cdn-${VERSION}`;

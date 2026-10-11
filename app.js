@@ -13,6 +13,10 @@ const EN = {
   "Damen": "Women",
   "Heim": "Home",
   "Auswärts": "Away",
+  "Sieg": "Win",
+  "Niederlage": "Loss",
+  "Unentschieden": "Draw",
+  "Spielbericht": "Match report",
   "Keine Verbindung zur Datenbank": "No database connection",
   "Bitte zuerst oben deinen Namen wählen": "Please pick your name above first",
   "Du kannst nur deine eigene Verfügbarkeit ändern": "You can only change your own availability",
@@ -289,6 +293,20 @@ const MATCHES = [
   { id: "2027-03-20-1400", round: "rueck", day: "Sa", date: "20.03.2027", time: "14:00", opp: "Spfr. Affaltrach II",        home: false, ort: "(H)" },
 ];
 
+/* Played matches get a score pill next to Heim/Auswärts: games from our side
+   (win/loss/draw colour), linked to the nuLiga match report. Data comes from
+   window.RESULTS in standings.js (written by scripts/update-standings.mjs). */
+function resultBadge(id) {
+  const r = (window.RESULTS || {})[id];
+  if (!r) return "";
+  const cls = r.own > r.opp ? "win" : r.own < r.opp ? "loss" : "draw";
+  const label = `${r.own}:${r.opp}`;
+  const title = t(cls === "win" ? "Sieg" : cls === "loss" ? "Niederlage" : "Unentschieden") + " — " + t("Spielbericht");
+  return r.report
+    ? ` <a class="badge-res ${cls}" href="${esc(r.report)}" target="_blank" rel="noopener" title="${esc(title)}">${label}</a>`
+    : ` <span class="badge-res ${cls}" title="${esc(title)}">${label}</span>`;
+}
+
 function renderMatches(tableId, round) {
   const list = MATCHES.filter(m => m.round === round);
   const rows = list.map((m, i) => {
@@ -299,7 +317,7 @@ function renderMatches(tableId, round) {
       ${sameAsPrev ? "" : `<td class="mdate" rowspan="${span}">${t(m.day)} ${m.date}</td>`}
       <td class="mtime">${m.time}</td>
       <td class="mopp">${esc(m.opp)}</td>
-      <td><span class="badge-ha ${m.home ? "h" : "a"}">${t(m.home ? "Heim" : "Auswärts")}</span></td>
+      <td class="mres"><span class="badge-ha ${m.home ? "h" : "a"}">${t(m.home ? "Heim" : "Auswärts")}</span>${resultBadge(m.id)}</td>
     </tr>`;
   }).join("");
   document.getElementById(tableId).innerHTML = `

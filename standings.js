@@ -13,6 +13,10 @@
      rang   = rank                   beg    = matches played
      s/u/n  = win, draw, loss
      punkte = points "x:y"           spiele = games "x:y"    saetze = sets "x:y"
+
+   RESULTS (second block): played matches of the own team, keyed by the
+   match id from app.js (yyyy-mm-dd-HHMM). own/opp = games from our side,
+   report = link to the nuLiga match report. Unplayed matches are absent.
    ========================================================================== */
 window.STANDINGS = {
   updated: "2026-10-11",
@@ -25,4 +29,8 @@ window.STANDINGS = {
     { rang: 6, team: "SG Brackenheim/Schwaigern",       beg: 1, s: 0, u: 0, n: 1, punkte: "0:2", spiele: "0:8", saetze: "0:16" },
     { rang: 7, team: "SG Heilbronn/Leingarten V",       beg: 1, s: 0, u: 0, n: 1, punkte: "0:2", spiele: "0:8", saetze: "0:16" },
   ],
+};
+
+window.RESULTS = {
+  "2026-10-10-1400": { own: 8, opp: 0, report: "https://bwbv-badminton.liga.nu/cgi-bin/WebObjects/nuLigaBADDE.woa/wa/groupMeetingReport?meeting=398232&championship=NB+26%2F27&group=40186" },
 };

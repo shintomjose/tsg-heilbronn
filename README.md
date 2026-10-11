@@ -40,6 +40,9 @@ nuLiga table every Sunday and Monday morning (results appear there the day after
 Saturday matches), rewrites `standings.js` and pushes — GitHub Pages then publishes it.
 It can also be started by hand: repo → Actions → "Update standings" → Run workflow.
 Local run: `node scripts/update-standings.mjs`.
+The same run also writes `window.RESULTS` (score of each played Team 4 match, seen from
+our side, plus the nuLiga match-report link) — shown as a coloured pill (green win, red
+loss, amber draw) next to Heim/Auswärts in both match tables of the Termine tab.
 
 **Manual fallback** (nuLiga layout change, network trouble):
 
@@ -91,7 +94,7 @@ Every push to `main` goes live directly.
 ```
 index.html            App shell and markup of the two tabs
 app.js                Logic: match dates, availability, lineup, Firebase sync
-standings.js          League standings (maintained by hand)
+standings.js          League standings + Team 4 match results (auto-updated from nuLiga)
 style.css             Design (green/grey, light/dark mode)
 pwa.js                Manifest/meta injection, service worker registration, update prompt
 sw.js                 Service worker (precache, offline fallback)

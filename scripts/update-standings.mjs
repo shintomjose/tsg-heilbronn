@@ -1,4 +1,6 @@
-/* Fetch the nuLiga group page and rewrite the data block in standings.js.
+/* Fetch the nuLiga group page and rewrite the data blocks in standings.js:
+ * the league table (window.STANDINGS) and the results of the own team's
+ * played matches (window.RESULTS, keyed by the match id used in app.js).
  *
  * Run by .github/workflows/update-standings.yml after every match day;
  * local test: node scripts/update-standings.mjs [--from-file page.html]
@@ -14,6 +16,8 @@ import { dirname, join } from "node:path";
 const URL_ =
   "https://bwbv-badminton.liga.nu/cgi-bin/WebObjects/nuLigaBADDE.woa/wa/groupPage?championship=NB+26%2F27&group=40186";
 const STANDINGS_PATH = join(dirname(fileURLToPath(import.meta.url)), "..", "standings.js");
+const OWN_TEAM = "SG Heilbronn/Leingarten IV";
+const NULIGA_ORIGIN = "https://bwbv-badminton.liga.nu";
 
 function textOf(cellHtml) {
   return cellHtml
@@ -58,6 +62,54 @@ function parse(html) {
   return rows;
 }
 
+/* Results of the own team's matches from the "Spielplan" table.
+ * Returns { "<yyyy-mm-dd-HHMM>": { own, opp, report } } — the score is always
+ * seen from the own team's side, report links to the nuLiga match report. */
+function parseResults(html) {
+  const tables = html.match(/<table[^>]*class="result-set"[\s\S]*?<\/table>/g) || [];
+  const table = tables.find(
+    (t) => t.includes(">Heimmannschaft<") && t.includes(">Gastmannschaft<")
+  );
+  if (!table) throw new Error("schedule table not found on the page");
+
+  const results = {};
+  let date = null; // rows of the same day repeat the date only once
+  for (const tr of table.match(/<tr[\s\S]*?<\/tr>/g) || []) {
+    if (tr.includes("<th")) continue;
+    const raw = tr.match(/<td[\s\S]*?<\/td>/g) || [];
+    if (raw.length < 7) continue;
+    const cells = raw.map(textOf);
+    // layout: tag datum zeit ort heim gast spiele ...
+    const [, datum, zeit, , home, guest] = cells;
+    const d = datum.match(/^(\d\d)\.(\d\d)\.(\d{4})$/);
+    if (d) date = `${d[3]}-${d[2]}-${d[1]}`;
+    const tm = zeit.match(/^(\d\d):(\d\d)$/);
+    if (!date || !tm) continue;
+    if (home !== OWN_TEAM && guest !== OWN_TEAM) continue;
+
+    const score = cells[6].match(/^(\d+):(\d+)$/);
+    if (!score) continue; // not played yet
+    const href = (raw[6].match(/href="([^"]+)"/) || [])[1];
+    const ownIsHome = home === OWN_TEAM;
+    results[`${date}-${tm[1]}${tm[2]}`] = {
+      own: Number(ownIsHome ? score[1] : score[2]),
+      opp: Number(ownIsHome ? score[2] : score[1]),
+      report: href ? NULIGA_ORIGIN + href.replace(/&amp;/g, "&") : "",
+    };
+  }
+  return results;
+}
+
+function renderResults(results) {
+  const lines = Object.keys(results)
+    .sort()
+    .map((id) => {
+      const r = results[id];
+      return `  ${JSON.stringify(id)}: { own: ${r.own}, opp: ${r.opp}, report: ${JSON.stringify(r.report)} },`;
+    });
+  return `window.RESULTS = {\n${lines.join("\n")}\n};\n`;
+}
+
 function render(rows) {
   const pad = (v, w) => String(v).padEnd(w);
   const lines = rows.map(
@@ -82,10 +134,11 @@ const html =
       })();
 
 const rows = parse(html);
+const results = parseResults(html);
 const current = readFileSync(STANDINGS_PATH, "utf8");
 const head = current.slice(0, current.indexOf("window.STANDINGS"));
 if (!head) throw new Error("standings.js: window.STANDINGS marker not found");
-const next = head + render(rows);
+const next = head + render(rows) + "\n" + renderResults(results);
 
 // compare ignoring the "updated" date so a no-change Sunday produces no commit
 const strip = (s) => s.replace(/updated: "[^"]*"/, "");
